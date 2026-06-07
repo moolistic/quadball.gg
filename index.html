@@ -141,6 +141,26 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
 .icon-btn.danger:hover{border-color:var(--danger);color:var(--danger)}
 /* TEAM BADGE */
 .team-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(200,168,75,0.08);border:1px solid rgba(200,168,75,0.2);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px}
+/* LEAGUE FILTER BUTTONS */
+.league-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.lf-btn{background:none;border:1.5px solid var(--border);border-radius:20px;padding:6px 18px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;font-family:var(--fb);transition:all .15s;letter-spacing:.3px}
+.lf-btn:hover{border-color:var(--accent);color:var(--accent)}
+.lf-btn.active{background:rgba(200,168,75,0.12);border-color:var(--accent);color:var(--accent)}
+/* FOLLOWED TEAM CARDS */
+.followed-section{margin-bottom:24px}
+.followed-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+.followed-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.followed-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);padding:14px 16px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:6px}
+.followed-card:hover{border-color:var(--accent);background:rgba(200,168,75,0.06)}
+.fc-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:13px;font-weight:800;color:var(--accent);background:rgba(200,168,75,0.1);border:1.5px solid var(--border);flex-shrink:0;overflow:hidden}
+.fc-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.fc-name{font-weight:700;font-size:13px;line-height:1.2}
+.fc-league{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+/* LIFETIME STATS HORIZONTAL */
+.lifetime-hrow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
+.lifetime-hrow .sc{padding:12px 14px}
+.lifetime-hrow .sv{font-size:22px}
+@media(max-width:600px){.lifetime-hrow{grid-template-columns:repeat(3,1fr)}.followed-cards{grid-template-columns:repeat(2,1fr)}}
 /* HOME QUICK STAT */
 .home-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
 .hs-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);padding:16px 20px;display:flex;flex-direction:column;gap:4px}
@@ -167,13 +187,13 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
 <body>
 
 <nav>
-  <a class="brand" href="index.html">QB<span>L</span></a>
+  <a class="brand" href="index.html">Q<span>.GG</span></a>
   <div class="nav-links" id="nav-links-desktop">
     <button class="nb active" onclick="showPage('home',this)">Home</button>
     <button class="nb" onclick="showPage('calendar',this)">Schedule</button>
     <button class="nb" onclick="showPage('rankings',this)">Rankings</button>
     <a class="nb" href="score.html" style="text-decoration:none">Enter Score</a>
-    <button class="nb" onclick="showPage('stats',this)">Team Stats</button>
+    <button class="nb" onclick="showPage('stats',this)">Teams</button>
     <a class="nb" id="nav-admin-btn" href="admin.html" style="display:none;text-decoration:none">Admin</a>
   </div>
   <a href="profile.html" id="nav-profile-pill" style="text-decoration:none;display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:20px;padding:4px 12px 4px 5px;color:var(--text);font-size:13px;font-weight:600;white-space:nowrap;flex-shrink:0;margin-left:8px">
@@ -189,7 +209,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
   <button class="nb" onclick="showPage('calendar',this);closeHam()">Schedule</button>
   <button class="nb" onclick="showPage('rankings',this);closeHam()">Rankings</button>
   <a class="nb" href="score.html" style="text-decoration:none">Enter Score</a>
-  <button class="nb" onclick="showPage('stats',this);closeHam()">Team Stats</button>
+  <button class="nb" onclick="showPage('stats',this);closeHam()">Teams</button>
   <a class="nb" id="ham-admin-btn" href="admin.html" style="display:none;text-decoration:none">Admin</a>
   <a class="nb" href="profile.html" style="text-decoration:none">My Profile</a>
 </div>
@@ -224,6 +244,12 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
       <button id="lb-lifetime-btn" onclick="toggleLbMode()" style="flex-shrink:0;padding:6px 16px;border-radius:20px;border:1.5px solid var(--accent);background:none;color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.5px">Season</button>
     </div>
   </div>
+  <div class="league-filters">
+    <button class="lf-btn active" onclick="setLeagueFilter('all',this)">All Leagues</button>
+    <button class="lf-btn" onclick="setLeagueFilter('MLQ',this)">MLQ</button>
+    <button class="lf-btn" onclick="setLeagueFilter('Club',this)">Club</button>
+    <button class="lf-btn" onclick="setLeagueFilter('College',this)">College</button>
+  </div>
   <div class="tc"><table>
     <thead><tr>
       <th style="width:32px;cursor:pointer" onclick="cycleSort('rank')"># <span id="sort-rank">▼</span></th>
@@ -239,7 +265,11 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
 
 <!-- TEAM STATS -->
 <div class="page" id="page-stats">
-  <div class="ph"><div class="pt">Team Stats</div><div class="ps">Individual team performance and match history</div></div>
+  <div class="ph"><div class="pt">Teams</div><div class="ps">Individual team performance and match history</div></div>
+  <div id="followed-teams-section" class="followed-section" style="display:none">
+    <div class="followed-label">⭐ Your Followed Teams</div>
+    <div class="followed-cards" id="followed-cards-grid"></div>
+  </div>
   <div class="psc">
     <label>Select a team</label>
     <select id="stats-sel" onchange="renderTeamStats()"><option value="">— Choose team —</option></select>
@@ -497,7 +527,14 @@ function renderMovement(){
 }
 
 // ── Rankings ─────────────────────────────────────────────────────────────────
-let lbMode='season', sortCol='rank', sortDir='asc';
+let lbMode='season', sortCol='rank', sortDir='asc', leagueFilter='all';
+
+window.setLeagueFilter=function(league, btn){
+  leagueFilter=league;
+  document.querySelectorAll('.lf-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderRankings();
+};
 
 window.toggleLbMode=function(){
   lbMode=lbMode==='season'?'lifetime':'season';
@@ -520,7 +557,7 @@ function renderRankings(){
   const tbody=document.getElementById('rankings-body');
   if(!tbody) return;
   const minGames=3;
-  let list=teams.map(t=>{
+  let list=teams.filter(t=>!t.archived).map(t=>{
     const r=lbMode==='season'?(t.rating||RAW_CENTER):(t.lifetimeRating||t.rating||RAW_CENTER);
     const gp=lbMode==='season'?(t.seasonGames||0):(t.lifetimeGames||0);
     const w=t.wins||0, l=t.losses||0;
@@ -536,6 +573,10 @@ function renderRankings(){
   else list.sort((a,b)=>sortDir==='asc'?a.rank-b.rank:b.rank-a.rank);
 
   if(!list.length){ tbody.innerHTML=`<tr><td colspan="6"><div class="es">No teams yet.</div></td></tr>`; return; }
+
+  // Apply league filter
+  if(leagueFilter!=='all') list=list.filter(t=>(t.league||'').toLowerCase()===(leagueFilter.toLowerCase()));
+  if(!list.length){ tbody.innerHTML=`<tr><td colspan="6"><div class="es">No teams in this league yet.</div></td></tr>`; return; }
 
   tbody.innerHTML=list.map(t=>{
     const ranked=t.gp>=minGames;
@@ -557,7 +598,7 @@ function renderRankings(){
 }
 
 window.openTeamStats=function(id){
-  showPage('stats', [...document.querySelectorAll('.nb')].find(b=>b.textContent.trim()==='Team Stats'));
+  showPage('stats', [...document.querySelectorAll('.nb')].find(b=>b.textContent.trim()==='Teams'));
   document.getElementById('stats-sel').value=id;
   renderTeamStats();
 };
@@ -568,11 +609,35 @@ function fillSelects(){
   if(!sel) return;
   const cur=sel.value;
   sel.innerHTML='<option value="">— Choose team —</option>';
-  [...teams].sort((a,b)=>a.name.localeCompare(b.name)).forEach(t=>{
+  [...teams].sort((a,b)=>a.name.localeCompare(b.name)).filter(t=>!t.archived).forEach(t=>{
     sel.innerHTML+=`<option value="${t.id}">${t.name}</option>`;
   });
   if(cur) sel.value=cur;
+  renderFollowedCards();
 }
+
+function renderFollowedCards(){
+  const section=document.getElementById('followed-teams-section');
+  const grid=document.getElementById('followed-cards-grid');
+  if(!section||!grid) return;
+  const followed=indexUserProfile?.followedTeams||[];
+  if(!followed.length){ section.style.display='none'; return; }
+  const followedTeams=teams.filter(t=>followed.includes(t.id)&&!t.archived);
+  if(!followedTeams.length){ section.style.display='none'; return; }
+  section.style.display='';
+  grid.innerHTML=followedTeams.map(t=>`
+    <div class="followed-card" onclick="quickSelectTeam('${t.id}')">
+      <div class="fc-av">${t.logoUrl?`<img src="${t.logoUrl}" alt="">`:initials(t.name)}</div>
+      <div class="fc-name">${t.name}</div>
+      <div class="fc-league">${t.league||'Independent'}</div>
+    </div>`).join('');
+}
+
+window.quickSelectTeam=function(id){
+  const sel=document.getElementById('stats-sel');
+  if(sel){ sel.value=id; renderTeamStats(); }
+  sel.scrollIntoView({behavior:'smooth',block:'center'});
+};
 
 window.renderTeamStats=function(){
   const sel=document.getElementById('stats-sel');
@@ -590,6 +655,12 @@ window.renderTeamStats=function(){
   const w=t.wins||0, l=t.losses||0;
   const pts=t.totalPoints||0;
   const ppg=gp>0?(pts/gp).toFixed(1):'—';
+  const lw=t.lifetimeWins||w, ll=t.lifetimelosses||l;
+  const lgames=lgp||0;
+  const lpts=t.lifetimeTotalPoints||pts;
+  const lppg=lgames>0?(lpts/lgames).toFixed(1):'—';
+  const flagCatch=t.flagCatchPct!=null?parseFloat(t.flagCatchPct).toFixed(1)+'%':'—';
+  const leagueBadge=t.league?`<span style="display:inline-block;background:rgba(123,94,167,0.15);color:#a98fd4;border:1px solid rgba(123,94,167,0.3);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-left:8px">${t.league}</span>`:'';
 
   const teamMatches=matches.filter(m=>m.teamA===id||m.teamB===id||m.winner===id||m.loser===id).slice(-20).reverse();
 
@@ -598,7 +669,7 @@ window.renderTeamStats=function(){
       <div class="ptop">
         <div class="av">${initials(t.name)}</div>
         <div>
-          <div class="pname">${t.name}</div>
+          <div class="pname">${t.name}${leagueBadge}</div>
           <div class="pmeta">Established ${t.founded||new Date().getFullYear()}</div>
         </div>
         <div class="prb">
@@ -613,10 +684,15 @@ window.renderTeamStats=function(){
         <div class="pstat"><div class="psv" style="color:var(--accent)">${ppg}</div><div class="psl">Pts/Game</div></div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
-      <div class="sc"><div class="sl">Lifetime Rating</div><div class="sv gold">${lr}</div></div>
-      <div class="sc"><div class="sl">Lifetime GP</div><div class="sv">${lgp}</div></div>
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Lifetime Stats</div>
+    <div class="lifetime-hrow">
+      <div class="sc"><div class="sl">Rating</div><div class="sv gold">${lr}</div></div>
+      <div class="sc"><div class="sl">Wins</div><div class="sv" style="color:var(--success)">${lw}</div></div>
+      <div class="sc"><div class="sl">Losses</div><div class="sv" style="color:var(--danger)">${ll}</div></div>
+      <div class="sc"><div class="sl">Games</div><div class="sv">${lgames}</div></div>
+      <div class="sc"><div class="sl">Pts/Game</div><div class="sv" style="color:var(--accent)">${lppg}</div></div>
     </div>
+    ${t.flagCatchPct!=null?`<div class="sc" style="margin-bottom:20px;display:inline-block;min-width:160px"><div class="sl">🚩 Flag Catch %</div><div class="sv" style="color:var(--accent)">${flagCatch}</div></div>`:''}
     <div class="mh">
       <div class="mhh">Recent Matches</div>
       ${teamMatches.length?teamMatches.map(m=>{
@@ -741,6 +817,6 @@ function localDateStr(d=new Date()){
   showPage('home', document.querySelectorAll('.nb')[0]);
 })();
 </script>
-<footer style="text-align:center;padding:20px 16px 28px;font-size:11px;color:var(--muted);letter-spacing:.5px">Quadball League &nbsp;·&nbsp; Ver 1.0</footer>
+<footer style="text-align:center;padding:20px 16px 28px;font-size:11px;color:var(--muted);letter-spacing:.5px">Quadball League &nbsp;·&nbsp; Ver 1.1</footer>
 </body>
 </html>

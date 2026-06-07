@@ -35,8 +35,18 @@ nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;d
 .step-title{font-family:var(--fd);font-size:36px;font-weight:800;letter-spacing:1.5px;line-height:1;text-transform:uppercase}
 .step-sub{color:var(--muted);font-size:14px;margin-top:4px;font-weight:500}
 .step-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(200,168,75,0.1);color:var(--accent);font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;margin-bottom:10px;text-transform:uppercase;letter-spacing:.7px;border:1px solid rgba(200,168,75,0.2)}
+/* LEAGUE SELECTOR */
+.league-btns{display:flex;gap:8px;margin-bottom:16px}
+.league-btn{flex:1;padding:10px 8px;border:2px solid var(--border);border-radius:8px;background:var(--bg3);color:var(--muted);font-family:var(--fd);font-size:16px;font-weight:800;letter-spacing:1px;cursor:pointer;transition:all .15s;text-align:center}
+.league-btn:hover{border-color:rgba(200,168,75,0.4);color:var(--text)}
+.league-btn.active{border-color:var(--accent);background:rgba(200,168,75,0.1);color:var(--accent)}
+/* SEARCH BOX */
+.search-box{position:relative;margin-bottom:12px}
+.search-box input{width:100%;padding:10px 14px 10px 36px;border:1px solid var(--border);border-radius:8px;font-family:var(--fb);font-size:14px;color:var(--text);background:var(--bg3);outline:none;transition:border-color .15s}
+.search-box input:focus{border-color:var(--accent)}
+.search-box svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.4;pointer-events:none}
 /* TEAM CARDS */
-.team-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.team-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
 .team-card{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:18px 14px;cursor:pointer;transition:all .15s;text-align:center;user-select:none;-webkit-tap-highlight-color:transparent;position:relative;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
 .team-card:active{transform:scale(0.97)}
 .team-card.selected{border-color:var(--accent);background:rgba(200,168,75,0.07)}
@@ -56,30 +66,39 @@ nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;d
 .vs-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .vs-line{flex:1;height:1px;background:var(--border)}
 .vs-badge{font-family:var(--fd);font-size:18px;font-weight:800;color:var(--muted);letter-spacing:2px}
-/* WINNER CARDS */
-.winner-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:0}
-.winner-card{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:20px 12px;cursor:pointer;transition:all .15s;text-align:center;user-select:none}
-.winner-card:active{transform:scale(0.97)}
-.winner-card.selected{border-color:var(--accent);background:rgba(200,168,75,0.07)}
-.wc-trophy{font-size:30px;margin-bottom:8px}
-.wc-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:4px}
-.winner-card.selected .wc-label{color:var(--accent)}
-.wc-name{font-family:var(--fd);font-size:20px;font-weight:800;letter-spacing:.5px;line-height:1.2}
-/* SCORE SECTION */
-.score-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
-.score-section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:12px}
-.score-display{font-family:var(--fd);font-size:80px;font-weight:800;color:var(--accent);text-align:center;line-height:1;margin-bottom:8px}
-.score-sub{text-align:center;font-size:13px;color:var(--muted);margin-bottom:16px;font-weight:500}
-.score-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.score-btn{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 4px;font-family:var(--fd);font-size:20px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;color:var(--text)}
-.score-btn:active{background:rgba(200,168,75,0.1);border-color:var(--accent)}
-.score-btn.selected{background:rgba(200,168,75,0.1);border-color:var(--accent);color:var(--accent)}
-.score-num-input{width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:var(--fd);font-size:30px;font-weight:700;text-align:center;color:var(--text);background:var(--bg3);outline:none;margin-top:8px}
-.score-num-input:focus{border-color:var(--accent)}
-/* RESULT */
-.result-box{background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:12px;padding:16px 20px;text-align:center;margin-bottom:16px}
-.result-box .rb-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--accent);margin-bottom:4px}
-.result-box .rb-score{font-family:var(--fd);font-size:40px;font-weight:800;color:var(--accent);letter-spacing:1px}
+/* SCORE STEP ── set score row */
+.set-score-row{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;transition:border-color .15s,background .15s}
+.set-score-row.active-input{border-color:var(--accent);background:rgba(200,168,75,0.07)}
+.set-score-row-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.set-score-row-val{font-family:var(--fd);font-size:42px;font-weight:800;color:var(--accent);line-height:1;min-width:60px;text-align:right}
+/* SCORE STEP ── team cards */
+.score-teams-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.score-team-card{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center;cursor:pointer;user-select:none;transition:border-color .2s,background .2s}
+.score-team-card.active-input{border-color:var(--accent);background:rgba(200,168,75,0.07)}
+.score-team-card.win-card{border-color:var(--success)!important;background:rgba(61,191,122,0.1)!important}
+.score-team-card.loss-card{border-color:var(--danger)!important;background:rgba(226,75,75,0.08)!important}
+.stc-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:2px}
+.stc-name{font-family:var(--fd);font-size:16px;font-weight:800;letter-spacing:.4px;line-height:1.1;margin-bottom:6px}
+.stc-score{font-family:var(--fd);font-size:48px;font-weight:800;color:var(--accent);line-height:1}
+/* FLAG ROW */
+.flag-row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:12px}
+.flag-check-wrap{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;flex:1}
+.flag-check-wrap input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
+.flag-label{font-family:var(--fd);font-size:13px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);transition:color .15s}
+.flag-check-wrap input:checked + .flag-label{color:var(--accent)}
+.flag-divider{width:1px;height:28px;background:var(--border);flex-shrink:0}
+/* UNIFIED SCORE KEYPAD */
+.keypad-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px}
+.keypad-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px;text-align:center}
+.keypad-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.kp-btn{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:13px 4px;font-family:var(--fd);font-size:20px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;color:var(--text)}
+.kp-btn:active,.kp-btn:hover{background:rgba(200,168,75,0.1);border-color:var(--accent);color:var(--accent)}
+.kp-btn.selected{background:rgba(200,168,75,0.15);border-color:var(--accent);color:var(--accent)}
+.keypad-manual-input{width:100%;margin-top:10px;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-family:var(--fd);font-size:22px;font-weight:700;text-align:center;color:var(--text);background:var(--bg3);outline:none;transition:border-color .15s}
+.keypad-manual-input:focus{border-color:var(--accent)}
+.keypad-manual-input::placeholder{font-size:14px;font-family:var(--fb);font-weight:500;color:var(--muted)}
+/* VALIDATION MSG */
+.val-msg{font-size:13px;font-weight:600;color:var(--danger);text-align:center;padding:6px 0;min-height:22px}
 /* ACTION BUTTONS */
 .action-btn{width:100%;padding:16px;border:none;border-radius:10px;font-family:var(--fd);font-size:24px;font-weight:800;letter-spacing:2px;cursor:pointer;transition:all .15s;margin-bottom:10px}
 .action-btn.primary{background:var(--accent);color:#000}
@@ -108,13 +127,13 @@ nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;d
 .loading-msg{color:var(--muted);font-size:14px;padding:20px 0;text-align:center}
 .date-row{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
 .date-row label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
-select,input[type=text],input[type=number],input[type=date]{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-family:var(--fb);font-size:14px;color:var(--text);background:var(--bg3);outline:none;transition:border-color .15s}
+select,input[type=text],input[type=date]{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-family:var(--fb);font-size:14px;color:var(--text);background:var(--bg3);outline:none;transition:border-color .15s}
 select:focus,input:focus{border-color:var(--accent)}
 </style>
 </head>
 <body>
 <nav>
-  <a class="brand" href="index.html">QB<span>L</span></a>
+  <a class="brand" href="index.html">Q<span>.GG</span></a>
   <div class="nav-links">
     <a class="nb" href="index.html" style="text-decoration:none">Home</a>
     <a class="nb active" href="score.html" style="text-decoration:none">Enter Score</a>
@@ -136,11 +155,23 @@ select:focus,input:focus{border-color:var(--accent)}
       <div class="step-title">Select Team A</div>
       <div class="step-sub">Choose the first team</div>
     </div>
+    <div style="margin-bottom:12px">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px">League</div>
+      <div class="league-btns">
+        <button class="league-btn active" id="lb-club" onclick="setLeague('Club')">Club</button>
+        <button class="league-btn" id="lb-college" onclick="setLeague('College')">College</button>
+        <button class="league-btn" id="lb-mlq" onclick="setLeague('MLQ')">MLQ</button>
+      </div>
+    </div>
     <div class="date-row">
       <label>Match Date</label>
       <input type="date" id="match-date">
     </div>
     <div id="team-grid-a" class="team-grid"><div class="loading-msg">Loading teams…</div></div>
+    <div class="search-box" id="search-a-wrap" style="display:none">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="white" stroke-width="1.5"/><line x1="10.5" y1="10.5" x2="14" y2="14" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input type="text" id="search-a" placeholder="Search teams…" oninput="renderTeamGridA()">
+    </div>
     <button class="action-btn primary" id="next-0" onclick="goStep(1)" disabled>Next →</button>
   </div>
 
@@ -154,6 +185,10 @@ select:focus,input:focus{border-color:var(--accent)}
     <div id="team-banner-a" class="team-banner"></div>
     <div class="vs-row"><div class="vs-line"></div><div class="vs-badge">VS</div><div class="vs-line"></div></div>
     <div id="team-grid-b" class="team-grid"></div>
+    <div class="search-box" id="search-b-wrap" style="display:none">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="white" stroke-width="1.5"/><line x1="10.5" y1="10.5" x2="14" y2="14" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input type="text" id="search-b" placeholder="Search teams…" oninput="renderTeamGridB()">
+    </div>
     <div id="pred-panel-container"></div>
     <button class="action-btn primary" id="next-1" onclick="goStep(2)" disabled>Next →</button>
     <button class="action-btn secondary" onclick="goStep(0)">← Back</button>
@@ -164,27 +199,52 @@ select:focus,input:focus{border-color:var(--accent)}
     <div class="step-header">
       <div class="step-pill">Step 3 of 4</div>
       <div class="step-title">Enter Scores</div>
-      <div class="step-sub">Quadball: max score 170 pts (10 quaffle goals × 10 + 30 for snitch catch + extras)</div>
-    </div>
-    <div id="score-banners"></div>
-
-    <!-- Team A Score -->
-    <div class="score-section">
-      <div class="score-section-label" id="score-label-a">Team A Score</div>
-      <div class="score-display" id="score-disp-a">0</div>
-      <div class="score-sub">Tap a value or type below</div>
-      <div class="score-btns" id="score-btns-a"></div>
-      <input type="number" class="score-num-input" id="score-input-a" min="0" max="999" placeholder="Or type score" oninput="onScoreType('a')">
     </div>
 
-    <!-- Team B Score -->
-    <div class="score-section">
-      <div class="score-section-label" id="score-label-b">Team B Score</div>
-      <div class="score-display" id="score-disp-b">0</div>
-      <div class="score-sub">Tap a value or type below</div>
-      <div class="score-btns" id="score-btns-b"></div>
-      <input type="number" class="score-num-input" id="score-input-b" min="0" max="999" placeholder="Or type score" oninput="onScoreType('b')">
+    <!-- 1. Set Score row — entered first -->
+    <div class="set-score-row active-input" id="set-score-row" onclick="setFocus('set')">
+      <div>
+        <div class="set-score-row-label">Set Score</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Win threshold · multiples of 10</div>
+      </div>
+      <div class="set-score-row-val" id="set-score-disp">80</div>
     </div>
+
+    <!-- 2. Flag caught row -->
+    <div class="flag-row">
+      <label class="flag-check-wrap">
+        <input type="checkbox" id="flag-a" onchange="onFlagChange('a')">
+        <span class="flag-label" id="flag-label-a">🏳 Team A Flag</span>
+      </label>
+      <div class="flag-divider"></div>
+      <label class="flag-check-wrap" style="justify-content:flex-end">
+        <input type="checkbox" id="flag-b" onchange="onFlagChange('b')">
+        <span class="flag-label" id="flag-label-b">🏳 Team B Flag</span>
+      </label>
+    </div>
+
+    <!-- 3. Team score cards — click to switch active -->
+    <div class="score-teams-row">
+      <div class="score-team-card" id="stc-a" onclick="setFocus('a')">
+        <div class="stc-label">Team A</div>
+        <div class="stc-name" id="stc-name-a">—</div>
+        <div class="stc-score" id="score-disp-a">0</div>
+      </div>
+      <div class="score-team-card" id="stc-b" onclick="setFocus('b')">
+        <div class="stc-label">Team B</div>
+        <div class="stc-name" id="stc-name-b">—</div>
+        <div class="stc-score" id="score-disp-b">0</div>
+      </div>
+    </div>
+
+    <!-- 4. Unified keypad -->
+    <div class="keypad-section">
+      <div class="keypad-label" id="keypad-label">Entering: Set Score</div>
+      <div class="keypad-grid" id="keypad-grid"></div>
+      <input type="number" id="keypad-manual" class="keypad-manual-input" placeholder="Other (multiple of 10)" step="10" min="0" onblur="commitManualScore()" onkeydown="if(event.key==='Enter'){commitManualScore();this.blur()}">
+    </div>
+
+    <div class="val-msg" id="val-msg"></div>
 
     <button class="action-btn primary" id="next-2" onclick="goStep(3)" disabled>Next →</button>
     <button class="action-btn secondary" onclick="goStep(1)">← Back</button>
@@ -212,9 +272,6 @@ import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot }
 import { getAuth, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-// ── REPLACE WITH YOUR FIREBASE CONFIG ────────────────────────────────────────
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyCSYAz6tnIOxG9MMkOUoDtMSRMFdkpT6KQ",
   authDomain: "quadball-1596e.firebaseapp.com",
@@ -224,7 +281,6 @@ const firebaseConfig = {
   appId: "1:385141631326:web:cf0ba334d8af6027de47cf",
   measurementId: "G-SJ8E8BB1TS"
 };
-// ─────────────────────────────────────────────────────────────────────────────
 
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
@@ -248,26 +304,54 @@ function toast(msg,err){
 }
 
 let teams=[], currentUser=null;
-let selA=null, selB=null, scoreA=0, scoreB=0;
-const QUICK_SCORES=[0,10,30,50,80,100,120,150,160,170];
+let selA=null, selB=null, scoreA=0, scoreB=0, setScoreVal=80;
+// activeFocus: 'set' | 'a' | 'b'
+let activeFocus='set';
+let currentLeague='Club';
+
+// Keypad values — multiples of 10, 0–200
+// Quick-pick values — multiples of 10, 50–150
+const KEYPAD_VALS=[50,60,70,80,90,100,110,120,130,140,150,160];
 
 onSnapshot(collection(db,'teams'), snap=>{
   teams=snap.docs.map(d=>({id:d.id,...d.data()}));
   renderTeamGridA();
 });
 onAuthStateChanged(auth,u=>{ currentUser=u; });
-
-// Set today as default date
-document.getElementById('match-date').value = localDateStr();
+document.getElementById('match-date').value=localDateStr();
 
 function localDateStr(d=new Date()){
   return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-function renderTeamGridA(){
+// ── LEAGUE ───────────────────────────────────────────────────────────────────
+window.setLeague=function(league){
+  currentLeague=league;
+  ['Club','College','MLQ'].forEach(l=>{
+    document.getElementById('lb-'+l.toLowerCase())?.classList.toggle('active',l===league);
+  });
+  selA=null; selB=null;
+  document.getElementById('next-0').disabled=true;
+  renderTeamGridA();
+};
+
+function getLeagueTeams(excludeId){
+  let list=teams.filter(t=>(t.league||'Club')===currentLeague);
+  if(excludeId) list=list.filter(t=>t.id!==excludeId);
+  return list;
+}
+
+// ── TEAM GRID A ──────────────────────────────────────────────────────────────
+window.renderTeamGridA=function(){
   const grid=document.getElementById('team-grid-a');
-  if(!teams.length){ grid.innerHTML='<div class="loading-msg">No teams found. Add teams in Admin.</div>'; return; }
-  grid.innerHTML=teams.map(t=>`
+  const sw=document.getElementById('search-a-wrap');
+  const q=(document.getElementById('search-a')?.value||'').toLowerCase();
+  let list=getLeagueTeams();
+  if(!list.length){ grid.innerHTML='<div class="loading-msg">No teams found for this league.</div>'; sw.style.display='none'; return; }
+  sw.style.display=list.length>8?'block':'none';
+  if(q) list=list.filter(t=>t.name.toLowerCase().includes(q));
+  if(!list.length){ grid.innerHTML='<div class="loading-msg">No teams match your search.</div>'; return; }
+  grid.innerHTML=list.map(t=>`
     <div class="team-card${selA===t.id?' selected':''}" onclick="selectTeamA('${t.id}')">
       <div class="tc-av">${initials(t.name)}</div>
       <div class="tc-name">${t.name}</div>
@@ -275,16 +359,22 @@ function renderTeamGridA(){
       <div class="tc-check">✓</div>
     </div>`).join('');
   document.getElementById('next-0').disabled=!selA;
-}
-
-window.selectTeamA=function(id){
-  selA=id; renderTeamGridA();
 };
 
-function renderTeamGridB(){
+window.selectTeamA=function(id){ selA=id; goStep(1); };
+
+// ── TEAM GRID B ──────────────────────────────────────────────────────────────
+window.renderTeamGridB=function(){
   const grid=document.getElementById('team-grid-b');
+  const sw=document.getElementById('search-b-wrap');
+  const q=(document.getElementById('search-b')?.value||'').toLowerCase();
   const tA=teams.find(t=>t.id===selA);
-  grid.innerHTML=teams.filter(t=>t.id!==selA).map(t=>`
+  let list=getLeagueTeams(selA);
+  if(!list.length){ grid.innerHTML='<div class="loading-msg">No other teams in this league.</div>'; sw.style.display='none'; return; }
+  sw.style.display=list.length>8?'block':'none';
+  if(q) list=list.filter(t=>t.name.toLowerCase().includes(q));
+  if(!list.length){ grid.innerHTML='<div class="loading-msg">No teams match your search.</div>'; return; }
+  grid.innerHTML=list.map(t=>`
     <div class="team-card${selB===t.id?' selected':''}" onclick="selectTeamB('${t.id}')">
       <div class="tc-av">${initials(t.name)}</div>
       <div class="tc-name">${t.name}</div>
@@ -295,17 +385,10 @@ function renderTeamGridB(){
     `<div class="team-banner-label">Team A</div><div class="team-banner-name">${tA?.name||'?'}</div>`;
   document.getElementById('next-1').disabled=!selB;
   renderPredPanel();
-}
+};
 
 window.selectTeamB=function(id){
-  selB=id;
-  const grid=document.getElementById('team-grid-b');
-  grid.querySelectorAll('.team-card').forEach(c=>c.classList.remove('selected'));
-  grid.querySelectorAll('.team-card').forEach(c=>{
-    if(c.querySelector('.tc-name').textContent===teams.find(t=>t.id===id)?.name) c.classList.add('selected');
-  });
-  // re-render to update check mark
-  renderTeamGridB();
+  selB=id; renderTeamGridB();
   document.getElementById('next-1').disabled=false;
   renderPredPanel();
 };
@@ -323,9 +406,7 @@ function renderPredPanel(){
     <table class="pred-table">
       <thead><tr>
         <th class="pred-th-label">Team</th>
-        <th>${tA.name}</th>
-        <th>vs</th>
-        <th>${tB.name}</th>
+        <th>${tA.name}</th><th>vs</th><th>${tB.name}</th>
       </tr></thead>
       <tbody><tr>
         <td class="pred-td-label">Win %</td>
@@ -337,58 +418,165 @@ function renderPredPanel(){
   </div>`;
 }
 
+// ── SCORE STEP ───────────────────────────────────────────────────────────────
 function renderScoreStep(){
   const tA=teams.find(t=>t.id===selA), tB=teams.find(t=>t.id===selB);
-  document.getElementById('score-label-a').textContent=`${tA?.name||'Team A'} Score`;
-  document.getElementById('score-label-b').textContent=`${tB?.name||'Team B'} Score`;
-  document.getElementById('score-banners').innerHTML=`
-    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:16px">
-      <div class="team-banner"><div class="team-banner-label">Team A</div><div class="team-banner-name">${tA?.name||'?'}</div></div>
-      <div style="font-family:var(--fd);font-size:22px;font-weight:800;color:var(--muted);padding-top:16px">VS</div>
-      <div class="team-banner"><div class="team-banner-label">Team B</div><div class="team-banner-name">${tB?.name||'?'}</div></div>
-    </div>`;
-  buildScoreBtns('a'); buildScoreBtns('b');
+  const nameA=tA?.name||'Team A', nameB=tB?.name||'Team B';
+  document.getElementById('stc-name-a').textContent=nameA;
+  document.getElementById('stc-name-b').textContent=nameB;
+  document.getElementById('flag-label-a').textContent='🏳 '+nameA+' Flag';
+  document.getElementById('flag-label-b').textContent='🏳 '+nameB+' Flag';
+  scoreA=0; scoreB=0; setScoreVal=80;
+  document.getElementById('flag-a').checked=false;
+  document.getElementById('flag-b').checked=false;
+  document.getElementById('val-msg').textContent='';
+  const manualEl=document.getElementById('keypad-manual');
+  if(manualEl) manualEl.value='';
+  activeFocus='set';
+  refreshFocusUI();
   updateScoreDisp();
-  document.getElementById('next-2').disabled=true;
-  document.getElementById('score-input-a').value='';
-  document.getElementById('score-input-b').value='';
 }
 
-function buildScoreBtns(side){
-  const el=document.getElementById(`score-btns-${side}`);
-  const cur=side==='a'?scoreA:scoreB;
-  el.innerHTML=QUICK_SCORES.map(v=>`<button class="score-btn${cur===v?' selected':''}" onclick="setScore('${side}',${v})">${v}</button>`).join('');
+// Set which input is active and rebuild keypad
+window.setFocus=function(target){
+  activeFocus=target;
+  refreshFocusUI();
+};
+
+function refreshFocusUI(){
+  // Highlight active card
+  document.getElementById('set-score-row').classList.toggle('active-input', activeFocus==='set');
+  document.getElementById('stc-a').classList.toggle('active-input', activeFocus==='a');
+  document.getElementById('stc-b').classList.toggle('active-input', activeFocus==='b');
+  // Keypad label
+  const labels={set:'Set Score',a:document.getElementById('stc-name-a')?.textContent||'Team A',b:document.getElementById('stc-name-b')?.textContent||'Team B'};
+  document.getElementById('keypad-label').textContent='Entering: '+labels[activeFocus];
+  buildKeypad();
 }
 
-window.setScore=function(side,v){
-  if(side==='a') scoreA=v; else scoreB=v;
-  document.getElementById(`score-input-${side}`).value='';
-  buildScoreBtns('a'); buildScoreBtns('b');
+function buildKeypad(){
+  const grid=document.getElementById('keypad-grid');
+  const cur=activeFocus==='set'?setScoreVal:(activeFocus==='a'?scoreA:scoreB);
+  // Quick buttons 50–150
+  grid.innerHTML=KEYPAD_VALS.map(v=>`
+    <button class="kp-btn${cur===v?' selected':''}" onclick="keypick(${v})">${v}</button>
+  `).join('');
+  // Manual input for out-of-range values
+  const manualVal=(cur!==null && !KEYPAD_VALS.includes(cur) && cur>0)?cur:'';
+  const manualEl=document.getElementById('keypad-manual');
+  if(manualEl){
+    manualEl.value=manualVal;
+    manualEl.placeholder='Other (multiple of 10)';
+  }
+}
+
+window.keypick=function(v){
+  const wasSet=(activeFocus==='set');
+  const wasA=(activeFocus==='a');
+  if(activeFocus==='set') setScoreVal=v;
+  else if(activeFocus==='a') scoreA=v;
+  else scoreB=v;
+  // Clear manual input
+  const manualEl=document.getElementById('keypad-manual');
+  if(manualEl) manualEl.value='';
+  updateScoreDisp();
+  // Auto-advance: set → a, a → b
+  if(wasSet){ activeFocus='a'; refreshFocusUI(); }
+  else if(wasA){ activeFocus='b'; refreshFocusUI(); }
+  else { buildKeypad(); }
+};
+
+window.commitManualScore=function(){
+  const el=document.getElementById('keypad-manual');
+  if(!el||el.value==='') return;
+  const raw=parseInt(el.value)||0;
+  const v=Math.round(raw/10)*10;
+  el.value=v;
+  if(activeFocus==='set') setScoreVal=v;
+  else if(activeFocus==='a') scoreA=v;
+  else scoreB=v;
+  buildKeypad();
+  updateScoreDisp();
+}
+
+// Flag: auto-decheck the other team's flag
+window.onFlagChange=function(side){
+  if(side==='a' && document.getElementById('flag-a').checked){
+    document.getElementById('flag-b').checked=false;
+  } else if(side==='b' && document.getElementById('flag-b').checked){
+    document.getElementById('flag-a').checked=false;
+  }
   updateScoreDisp();
 };
 
-window.onScoreType=function(side){
-  const v=parseInt(document.getElementById(`score-input-${side}`).value)||0;
-  if(side==='a') scoreA=v; else scoreB=v;
-  buildScoreBtns('a'); buildScoreBtns('b');
-  updateScoreDisp();
-};
+function getFlagBonus(side){
+  if(side==='a') return document.getElementById('flag-a')?.checked?5:0;
+  return document.getElementById('flag-b')?.checked?5:0;
+}
 
 function updateScoreDisp(){
-  document.getElementById('score-disp-a').textContent=scoreA;
-  document.getElementById('score-disp-b').textContent=scoreB;
-  const valid=scoreA!==scoreB; // can't tie in quadball
+  const bonusA=getFlagBonus('a'), bonusB=getFlagBonus('b');
+  const totalA=scoreA+bonusA, totalB=scoreB+bonusB;
+  const ss=Math.max(60, setScoreVal%10===0?setScoreVal:Math.round(setScoreVal/10)*10);
+
+  // Update set score display
+  document.getElementById('set-score-disp').textContent=ss;
+
+  // Update team score displays — flag shown as emoji, no +5 text
+  const flagA=bonusA>0, flagB=bonusB>0;
+  document.getElementById('score-disp-a').textContent=totalA;
+  document.getElementById('score-disp-b').textContent=totalB;
+
+  // Show yellow flag emoji on the score card stc-score line if flag caught
+  const sdA=document.getElementById('score-disp-a');
+  const sdB=document.getElementById('score-disp-b');
+  sdA.innerHTML=totalA+(flagA?' 🚩':'');
+  sdB.innerHTML=totalB+(flagB?' 🚩':'');
+
+  // Win/loss card colours
+  const aWins=totalA>=ss, bWins=totalB>=ss;
+  const cardA=document.getElementById('stc-a'), cardB=document.getElementById('stc-b');
+  // Remove colour classes but preserve active-input
+  cardA.classList.remove('win-card','loss-card');
+  cardB.classList.remove('win-card','loss-card');
+  sdA.style.color='var(--accent)'; sdB.style.color='var(--accent)';
+
+  if(aWins&&!bWins){
+    cardA.classList.add('win-card'); sdA.style.color='var(--success)';
+    cardB.classList.add('loss-card'); sdB.style.color='var(--danger)';
+  } else if(bWins&&!aWins){
+    cardB.classList.add('win-card'); sdB.style.color='var(--success)';
+    cardA.classList.add('loss-card'); sdA.style.color='var(--danger)';
+  }
+
+  // Validation
+  const valMsg=document.getElementById('val-msg');
+  let err='';
+  if(ss<60) err='Set score must be at least 60 points.';
+  else if(ss%10!==0) err='Set score must be a multiple of 10.';
+  else if(scoreA%10!==0||scoreB%10!==0) err='Team scores must be multiples of 10.';
+  else if(totalA>=ss+10 && !document.getElementById('flag-a').checked) err=`${document.getElementById('stc-name-a').textContent} is 10+ over set score — flag catch required.`;
+  else if(totalB>=ss+10 && !document.getElementById('flag-b').checked) err=`${document.getElementById('stc-name-b').textContent} is 10+ over set score — flag catch required.`;
+  else if(aWins&&bWins) err='Both teams cannot be at or above the set score.';
+  else if(aWins&&totalA-ss>=30) err='Team A score is 30+ over the set score. Please check.';
+  else if(bWins&&totalB-ss>=30) err='Team B score is 30+ over the set score. Please check.';
+  else if(!aWins&&!bWins&&(totalA>0||totalB>0)) err='Neither team has reached the set score yet.';
+
+  valMsg.textContent=err;
+  const valid=!err&&(aWins||bWins)&&!(aWins&&bWins)&&totalA!==totalB;
   document.getElementById('next-2').disabled=!valid;
 }
 
 function renderConfirm(){
   const tA=teams.find(t=>t.id===selA), tB=teams.find(t=>t.id===selB);
-  const winA=scoreA>scoreB;
-  const wTeam=winA?tA:tB, lTeam=winA?tB:tA;
-  const wScore=winA?scoreA:scoreB, lScore=winA?scoreB:scoreA;
+  const bonusA=getFlagBonus('a'), bonusB=getFlagBonus('b');
+  const totalA=scoreA+bonusA, totalB=scoreB+bonusB;
+  const winA=totalA>totalB;
+  const wTeam=winA?tA:tB;
+  const wScore=winA?totalA:totalB, lScore=winA?totalB:totalA;
   const rA=tA?.rating||RAW_CENTER, rB=tB?.rating||RAW_CENTER;
-  const delta=calcDelta(rA,rB,scoreA,scoreB);
-  const deltaDisp=(delta>0?'+':'')+delta.toFixed(3);
+  const delta=calcDelta(rA,rB,totalA,totalB);
+  const ss=Math.max(60,setScoreVal);
   document.getElementById('confirm-box').innerHTML=`
     <div style="text-align:center;margin-bottom:20px">
       <div style="font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Winner</div>
@@ -396,14 +584,14 @@ function renderConfirm(){
       <div style="font-family:var(--fd);font-size:28px;font-weight:700;margin-top:8px">${wScore} – ${lScore}</div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-      <div style="background:var(--bg3);border-radius:8px;padding:12px;text-align:center">
+      <div style="background:var(--bg3);border-radius:8px;padding:12px;text-align:center;border:2px solid ${winA?'var(--success)':'var(--danger)'}">
         <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:4px">${tA?.name}</div>
-        <div style="font-family:var(--fd);font-size:24px;font-weight:700">${scoreA}</div>
+        <div style="font-family:var(--fd);font-size:24px;font-weight:700">${totalA}${bonusA?' 🚩':''}</div>
         <div style="font-size:11px;color:${winA?'var(--success)':'var(--danger)'};font-weight:700;margin-top:4px">${winA?'WIN':'LOSS'}</div>
       </div>
-      <div style="background:var(--bg3);border-radius:8px;padding:12px;text-align:center">
+      <div style="background:var(--bg3);border-radius:8px;padding:12px;text-align:center;border:2px solid ${!winA?'var(--success)':'var(--danger)'}">
         <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:4px">${tB?.name}</div>
-        <div style="font-family:var(--fd);font-size:24px;font-weight:700">${scoreB}</div>
+        <div style="font-family:var(--fd);font-size:24px;font-weight:700">${totalB}${bonusB?' 🚩':''}</div>
         <div style="font-size:11px;color:${!winA?'var(--success)':'var(--danger)'};font-weight:700;margin-top:4px">${!winA?'WIN':'LOSS'}</div>
       </div>
     </div>
@@ -411,7 +599,7 @@ function renderConfirm(){
       <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:4px">Rating Change (${tA?.name})</div>
       <div style="font-family:var(--fd);font-size:24px;font-weight:700;color:${winA?'var(--success)':'var(--danger)'}">${winA?'+'+Math.abs(delta).toFixed(3):'-'+Math.abs(delta).toFixed(3)}</div>
     </div>
-    <div style="font-size:12px;color:var(--muted);margin-top:12px;text-align:center">Date: ${document.getElementById('match-date').value||localDateStr()}</div>`;
+    <div style="font-size:12px;color:var(--muted);margin-top:12px;text-align:center">League: ${currentLeague} · Set: ${ss} · Date: ${document.getElementById('match-date').value||localDateStr()}</div>`;
 }
 
 window.goStep=function(n){
@@ -425,63 +613,54 @@ window.goStep=function(n){
 
 window.submitScore=async function(){
   const btn=document.getElementById('submit-btn');
-  if(!selA||!selB||scoreA===scoreB){ toast('Invalid match data',true); return; }
+  const bonusA=getFlagBonus('a'), bonusB=getFlagBonus('b');
+  const totalA=scoreA+bonusA, totalB=scoreB+bonusB;
+  if(!selA||!selB||totalA===totalB){ toast('Invalid match data',true); return; }
   const tA=teams.find(t=>t.id===selA), tB=teams.find(t=>t.id===selB);
   if(!tA||!tB){ toast('Teams not found',true); return; }
-
   btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Saving…';
-
   const rA=tA.rating||RAW_CENTER, rB=tB.rating||RAW_CENTER;
   const rLA=tA.lifetimeRating||rA, rLB=tB.lifetimeRating||rB;
-  const deltaS=calcDelta(rA,rB,scoreA,scoreB);
-  const deltaL=calcDelta(rLA,rLB,scoreA,scoreB);
-  const winA=scoreA>scoreB;
+  const deltaS=calcDelta(rA,rB,totalA,totalB);
+  const deltaL=calcDelta(rLA,rLB,totalA,totalB);
+  const winA=totalA>totalB;
   const date=document.getElementById('match-date').value||localDateStr();
-
   try{
-    // Update Team A
     await updateDoc(doc(db,'teams',selA),{
-      rating:rA+deltaS,
-      lifetimeRating:rLA+deltaL,
-      wins:(tA.wins||0)+(winA?1:0),
-      losses:(tA.losses||0)+(winA?0:1),
-      totalPoints:(tA.totalPoints||0)+scoreA,
-      seasonGames:(tA.seasonGames||0)+1,
-      lifetimeGames:(tA.lifetimeGames||0)+1,
+      rating:rA+deltaS, lifetimeRating:rLA+deltaL,
+      wins:(tA.wins||0)+(winA?1:0), losses:(tA.losses||0)+(winA?0:1),
+      totalPoints:(tA.totalPoints||0)+totalA,
+      seasonGames:(tA.seasonGames||0)+1, lifetimeGames:(tA.lifetimeGames||0)+1,
       seasonYear:new Date().getFullYear()
     });
-    // Update Team B
     await updateDoc(doc(db,'teams',selB),{
-      rating:rB-deltaS,
-      lifetimeRating:rLB-deltaL,
-      wins:(tB.wins||0)+(winA?0:1),
-      losses:(tB.losses||0)+(winA?1:0),
-      totalPoints:(tB.totalPoints||0)+scoreB,
-      seasonGames:(tB.seasonGames||0)+1,
-      lifetimeGames:(tB.lifetimeGames||0)+1,
+      rating:rB-deltaS, lifetimeRating:rLB-deltaL,
+      wins:(tB.wins||0)+(winA?0:1), losses:(tB.losses||0)+(winA?1:0),
+      totalPoints:(tB.totalPoints||0)+totalB,
+      seasonGames:(tB.seasonGames||0)+1, lifetimeGames:(tB.lifetimeGames||0)+1,
       seasonYear:new Date().getFullYear()
     });
-    // Log match
     await addDoc(collection(db,'matches'),{
       teamA:selA, teamB:selB,
-      scoreA, scoreB,
-      winner:winA?selA:selB,
-      loser:winA?selB:selA,
-      scoreW:winA?scoreA:scoreB,
-      scoreL:winA?scoreB:scoreA,
+      scoreA:totalA, scoreB:totalB,
+      rawScoreA:scoreA, rawScoreB:scoreB,
+      flagCaughtA:bonusA>0, flagCaughtB:bonusB>0,
+      setScore:Math.max(60,setScoreVal),
+      league:currentLeague,
+      winner:winA?selA:selB, loser:winA?selB:selA,
+      scoreW:winA?totalA:totalB, scoreL:winA?totalB:totalA,
       ratingDelta:Math.abs(deltaS).toFixed(3),
       ratingChanges:{[selA]:deltaS,[selB]:-deltaS},
       lifetimeRatingChanges:{[selA]:deltaL,[selB]:-deltaL},
       date, timestamp:Date.now(),
       enteredBy:currentUser?.uid||null
     });
-    toast(`Match recorded! ${winA?tA.name:tB.name} wins ${winA?scoreA:scoreB}–${winA?scoreB:scoreA} 🏆`);
+    toast(`Match recorded! ${winA?tA.name:tB.name} wins ${winA?totalA:totalB}–${winA?totalB:totalA} 🏆`);
     selA=null; selB=null; scoreA=0; scoreB=0;
-    setTimeout(()=>goStep(0), 1500);
+    setTimeout(()=>goStep(0),1500);
   } catch(e){ toast('Error: '+e.message,true); }
   btn.disabled=false; btn.textContent='RECORD MATCH';
 };
-
 </script>
 </body>
 </html>

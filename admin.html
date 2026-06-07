@@ -110,7 +110,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
 </head>
 <body>
 <nav>
-  <a class="brand" href="index.html">QB<span>L</span></a>
+  <a class="brand" href="index.html">Q<span>.GG</span></a>
   <div class="nav-links">
     <a class="nb" href="index.html" style="text-decoration:none">← Back to League</a>
     <span class="nb active" style="cursor:default">Admin</span>
@@ -232,13 +232,21 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
       <div class="fg"><label>Team Name *</label><input type="text" id="t-name" placeholder="e.g. Thunder Hoops"></div>
       <div class="fg"><label>Founded Year</label><input type="number" id="t-founded" placeholder="2024"></div>
     </div>
-    <div class="fg" style="margin-bottom:16px"><label>Home Pitch / Location</label><input type="text" id="t-pitch" placeholder="Park, arena, etc."></div>
     <div class="fr">
-      <div class="fg"><label>Team Color (hex)</label><input type="text" id="t-color" placeholder="#C8A84B"></div>
+      <div class="fg"><label>League</label>
+        <select id="t-league">
+          <option value="">— Select league —</option>
+          <option value="MLQ">MLQ</option>
+          <option value="Club">Club</option>
+          <option value="College">College</option>
+        </select>
+      </div>
       <div class="fg"><label>Team Owner</label>
         <select id="t-owner"><option value="">— Select owner —</option></select>
       </div>
     </div>
+    <div class="fg" style="margin-bottom:16px"><label>Home Pitch / Location</label><input type="text" id="t-pitch" placeholder="Park, arena, etc."></div>
+    <div class="fg" style="margin-bottom:16px"><label>Team Color (hex)</label><input type="text" id="t-color" placeholder="#C8A84B"></div>
     <div class="fg" style="margin-bottom:16px">
       <label>Website</label>
       <input type="url" id="t-website" placeholder="https://yourteam.com">
@@ -256,6 +264,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
     </div>
     <div class="macts">
       <button class="bsec" onclick="closeModal('modal-team')">Cancel</button>
+      <button id="t-archive-btn" class="icon-btn" style="display:none;border-color:var(--muted);color:var(--muted)" onclick="archiveTeam()">Archive</button>
       <button id="t-delete-btn" class="bdanger" style="display:none" onclick="deleteTeam()">Delete</button>
       <button class="bpri" onclick="saveTeam()">Save</button>
     </div>
@@ -557,16 +566,33 @@ window.confirmDeleteUser=async function(){
 function renderTeams(){
   const el=document.getElementById('teams-list'); if(!el) return;
   if(!teams.length){ el.innerHTML=`<div class="es">No teams yet.</div>`; return; }
-  el.innerHTML=teams.map(t=>`
+  const active=teams.filter(t=>!t.archived);
+  const archived=teams.filter(t=>t.archived);
+  let html=active.map(t=>`
     <div class="admin-row">
       <div class="av">${t.logoUrl?`<img src="${esc(t.logoUrl)}" alt="">`:esc(initials(t.name))}</div>
       <div class="admin-row-info">
-        <strong>${esc(t.name)}</strong>
+        <strong>${esc(t.name)}${t.league?` <span style="font-size:11px;font-weight:700;color:#a98fd4;background:rgba(123,94,167,0.12);border-radius:10px;padding:1px 7px">${esc(t.league)}</span>`:''}</strong>
         <span>Season: ${toDisp(t.rating)} · Lifetime: ${toDisp(t.lifetimeRating||t.rating)} · W${t.wins||0}/L${t.losses||0} · ${t.seasonGames||0} GP${t.ownerUid?' · Owner set':''}</span>
       </div>
       <button class="icon-btn" onclick="openEditTeam('${t.id}')">Edit</button>
+      <button class="icon-btn danger" style="border-color:rgba(226,75,75,0.3)" onclick="archiveTeamById('${t.id}')">Archive</button>
       <button class="icon-btn danger" onclick="confirmDeleteTeamById('${t.id}')">Delete</button>
     </div>`).join('');
+  if(archived.length){
+    html+=`<div style="padding:10px 20px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;border-top:1px solid var(--border);margin-top:4px">Archived Teams</div>`;
+    html+=archived.map(t=>`
+    <div class="admin-row" style="opacity:.6">
+      <div class="av" style="border-color:var(--muted)">${esc(initials(t.name))}</div>
+      <div class="admin-row-info">
+        <strong>${esc(t.name)} <span style="font-size:11px;color:var(--muted);background:rgba(255,255,255,0.05);border-radius:10px;padding:1px 7px">Archived</span></strong>
+        <span>${t.league||''}${t.league?' · ':''}Disbanded</span>
+      </div>
+      <button class="icon-btn" onclick="unarchiveTeamById('${t.id}')">Restore</button>
+      <button class="icon-btn danger" onclick="confirmDeleteTeamById('${t.id}')">Delete</button>
+    </div>`).join('');
+  }
+  el.innerHTML=html;
 }
 
 // ── Matches ───────────────────────────────────────────────────────────────────
@@ -727,8 +753,10 @@ window.openAddTeam=function(){
   _editingTeamId=null;
   document.getElementById('modal-team-title').textContent='Add Team';
   ['t-name','t-founded','t-pitch','t-color','t-rating','t-lifetimeRating','t-website','t-logo'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('t-league').value='';
   document.getElementById('t-logo-preview').style.display='none';
   document.getElementById('t-delete-btn').style.display='none';
+  document.getElementById('t-archive-btn').style.display='none';
   populateOwnerDropdown();
   openModal('modal-team');
 };
@@ -744,10 +772,16 @@ window.openEditTeam=function(id){
   document.getElementById('t-lifetimeRating').value=t.lifetimeRating!=null?t.lifetimeRating:'';
   document.getElementById('t-website').value=t.website||'';
   document.getElementById('t-logo').value=t.logoUrl||'';
+  document.getElementById('t-league').value=t.league||'';
   const img=document.getElementById('t-logo-preview');
   if(t.logoUrl){ img.src=t.logoUrl; img.style.display='block'; }
   else { img.style.display='none'; }
   document.getElementById('t-delete-btn').style.display='';
+  const archBtn=document.getElementById('t-archive-btn');
+  archBtn.style.display='';
+  archBtn.textContent=t.archived?'Restore':'Archive';
+  archBtn.style.borderColor=t.archived?'var(--success)':'var(--muted)';
+  archBtn.style.color=t.archived?'var(--success)':'var(--muted)';
   populateOwnerDropdown(t.ownerUid||'');
   openModal('modal-team');
 };
@@ -764,6 +798,7 @@ window.saveTeam=async function(){
     website:document.getElementById('t-website').value||null,
     logoUrl:document.getElementById('t-logo').value||null,
     ownerUid:document.getElementById('t-owner').value||null,
+    league:document.getElementById('t-league').value||null,
     rating:rInput!==''?parseFloat(rInput):RAW_CENTER,
     lifetimeRating:lrInput!==''?parseFloat(lrInput):RAW_CENTER,
   };
@@ -781,6 +816,29 @@ window.saveTeam=async function(){
 window.deleteTeam=async function(){
   if(!_editingTeamId||!confirm(`Delete ${teams.find(t=>t.id===_editingTeamId)?.name}? This cannot be undone.`)) return;
   try{ await deleteDoc(doc(db,'teams',_editingTeamId)); closeModal('modal-team'); toast('Team deleted'); }
+  catch(e){ toast('Error: '+e.message,true); }
+};
+window.archiveTeam=async function(){
+  if(!_editingTeamId) return;
+  const t=teams.find(x=>x.id===_editingTeamId); if(!t) return;
+  const isArchived=!!t.archived;
+  const verb=isArchived?'Restore':'Archive';
+  if(!confirm(`${verb} ${t.name}? ${isArchived?'Team will reappear in rankings.':'Team will be hidden from rankings and team lists, but match data is preserved.'}`)) return;
+  try{
+    await updateDoc(doc(db,'teams',_editingTeamId),{archived:!isArchived});
+    closeModal('modal-team'); toast(isArchived?'Team restored!':'Team archived.');
+  }catch(e){ toast('Error: '+e.message,true); }
+};
+window.archiveTeamById=async function(id){
+  const t=teams.find(x=>x.id===id); if(!t) return;
+  if(!confirm(`Archive ${t.name}? It will be hidden from rankings. Match data is preserved.`)) return;
+  try{ await updateDoc(doc(db,'teams',id),{archived:true}); toast('Team archived.'); }
+  catch(e){ toast('Error: '+e.message,true); }
+};
+window.unarchiveTeamById=async function(id){
+  const t=teams.find(x=>x.id===id); if(!t) return;
+  if(!confirm(`Restore ${t.name} to active?`)) return;
+  try{ await updateDoc(doc(db,'teams',id),{archived:false}); toast('Team restored!'); }
   catch(e){ toast('Error: '+e.message,true); }
 };
 window.confirmDeleteTeamById=async function(id){
