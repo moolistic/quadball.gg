@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enter Score – Quadball League</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#C8A84B;--accent2:#7B5EA7;--bg:#0A0A0F;--bg2:#111118;--bg3:#18181F;
+  --card:#16161E;--card2:#1E1E28;--text:#E8E8F0;--muted:#6B6B80;
+  --border:rgba(255,255,255,0.07);--danger:#E24B4B;--success:#3DBF7A;
+  --fd:'Barlow Condensed',sans-serif;--fb:'Barlow',sans-serif;--rad:10px
+}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:54px;position:sticky;top:0;z-index:100}
+.brand{font-family:var(--fd);font-size:22px;font-weight:900;color:var(--accent);letter-spacing:2px;margin-right:14px;white-space:nowrap;text-decoration:none}
+.brand span{color:#fff}
+.nav-links{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nb{background:none;border:none;color:rgba(255,255,255,0.5);font-family:var(--fb);font-size:13px;font-weight:600;padding:8px 12px;border-radius:6px;cursor:pointer;transition:all .15s;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center}
+.nb:hover{background:rgba(255,255,255,0.06);color:#fff}
+.nb.active{background:rgba(200,168,75,0.12);color:var(--accent)}
+.ham-btn{display:none;background:none;border:none;color:#fff;cursor:pointer;padding:6px;border-radius:6px;flex-shrink:0}
+.ham-menu{display:none;position:fixed;top:54px;right:0;left:0;background:var(--bg2);z-index:300;flex-direction:column;padding:6px 8px;gap:2px;box-shadow:0 8px 32px rgba(0,0,0,.6);border-bottom:1px solid var(--border)}
+.ham-menu.open{display:flex}
+.ham-menu .nb{text-align:left;width:100%;border-radius:6px;font-size:14px;padding:10px 14px}
+@media(max-width:600px){.nav-links{display:none}.ham-btn{display:flex;align-items:center;justify-content:center}}
+.wrap{padding:20px 16px;max-width:600px;margin:0 auto;width:100%}
+/* STEPS */
+.step{display:none}
+.step.active{display:block}
+.step-header{margin-bottom:20px}
+.step-title{font-family:var(--fd);font-size:36px;font-weight:800;letter-spacing:1.5px;line-height:1;text-transform:uppercase}
+.step-sub{color:var(--muted);font-size:14px;margin-top:4px;font-weight:500}
+.step-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(200,168,75,0.1);color:var(--accent);font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;margin-bottom:10px;text-transform:uppercase;letter-spacing:.7px;border:1px solid rgba(200,168,75,0.2)}
+/* TEAM CARDS */
+.team-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.team-card{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:18px 14px;cursor:pointer;transition:all .15s;text-align:center;user-select:none;-webkit-tap-highlight-color:transparent;position:relative;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.team-card:active{transform:scale(0.97)}
+.team-card.selected{border-color:var(--accent);background:rgba(200,168,75,0.07)}
+.team-card.selected .tc-name{color:var(--accent)}
+.team-card.disabled{opacity:0.25;cursor:not-allowed;pointer-events:none}
+.tc-av{width:40px;height:40px;border-radius:50%;background:rgba(200,168,75,0.1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:16px;font-weight:800;color:var(--accent)}
+.team-card.selected .tc-av{background:var(--accent);color:#000}
+.tc-name{font-weight:700;font-size:15px;line-height:1.2}
+.tc-rating{font-size:11px;color:var(--muted);font-weight:600}
+.tc-check{position:absolute;top:8px;right:10px;font-size:14px;display:none;color:var(--accent)}
+.team-card.selected .tc-check{display:block}
+/* TEAM BANNER */
+.team-banner{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:10px}
+.team-banner-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:4px}
+.team-banner-name{font-family:var(--fd);font-size:22px;font-weight:800;letter-spacing:1px}
+/* VS */
+.vs-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.vs-line{flex:1;height:1px;background:var(--border)}
+.vs-badge{font-family:var(--fd);font-size:18px;font-weight:800;color:var(--muted);letter-spacing:2px}
+/* WINNER CARDS */
+.winner-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:0}
+.winner-card{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:20px 12px;cursor:pointer;transition:all .15s;text-align:center;user-select:none}
+.winner-card:active{transform:scale(0.97)}
+.winner-card.selected{border-color:var(--accent);background:rgba(200,168,75,0.07)}
+.wc-trophy{font-size:30px;margin-bottom:8px}
+.wc-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:4px}
+.winner-card.selected .wc-label{color:var(--accent)}
+.wc-name{font-family:var(--fd);font-size:20px;font-weight:800;letter-spacing:.5px;line-height:1.2}
+/* SCORE SECTION */
+.score-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.score-section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:12px}
+.score-display{font-family:var(--fd);font-size:80px;font-weight:800;color:var(--accent);text-align:center;line-height:1;margin-bottom:8px}
+.score-sub{text-align:center;font-size:13px;color:var(--muted);margin-bottom:16px;font-weight:500}
+.score-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.score-btn{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 4px;font-family:var(--fd);font-size:20px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;color:var(--text)}
+.score-btn:active{background:rgba(200,168,75,0.1);border-color:var(--accent)}
+.score-btn.selected{background:rgba(200,168,75,0.1);border-color:var(--accent);color:var(--accent)}
+.score-num-input{width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:var(--fd);font-size:30px;font-weight:700;text-align:center;color:var(--text);background:var(--bg3);outline:none;margin-top:8px}
+.score-num-input:focus{border-color:var(--accent)}
+/* RESULT */
+.result-box{background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:12px;padding:16px 20px;text-align:center;margin-bottom:16px}
+.result-box .rb-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--accent);margin-bottom:4px}
+.result-box .rb-score{font-family:var(--fd);font-size:40px;font-weight:800;color:var(--accent);letter-spacing:1px}
+/* ACTION BUTTONS */
+.action-btn{width:100%;padding:16px;border:none;border-radius:10px;font-family:var(--fd);font-size:24px;font-weight:800;letter-spacing:2px;cursor:pointer;transition:all .15s;margin-bottom:10px}
+.action-btn.primary{background:var(--accent);color:#000}
+.action-btn.primary:hover{background:#E0C060}
+.action-btn.primary:disabled{background:var(--muted);cursor:not-allowed;color:#333}
+.action-btn.secondary{background:transparent;color:var(--muted);border:1px solid var(--border);font-size:16px;padding:12px;font-weight:600;letter-spacing:.5px}
+.action-btn.secondary:hover{border-color:var(--accent);color:var(--accent)}
+/* PRED PANEL */
+.pred-panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-top:14px}
+.pred-panel-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:10px}
+.pred-table{width:100%;border-collapse:collapse}
+.pred-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:0 0 8px;text-align:center}
+.pred-table th.pred-th-label{text-align:left;width:60px}
+.pred-table td{padding:4px 0;text-align:center;vertical-align:middle}
+.pred-table td.pred-td-label{text-align:left;font-size:12px;color:var(--muted);font-weight:600}
+.pred-table td.pred-td-a{font-family:var(--fd);font-size:26px;font-weight:700;color:var(--accent)}
+.pred-table td.pred-td-b{font-family:var(--fd);font-size:26px;font-weight:700;color:var(--accent2)}
+.pred-table td.pred-td-margin{font-family:var(--fd);font-size:22px;font-weight:700;color:var(--muted)}
+.pred-table tr+tr td{border-top:1px solid var(--border);padding-top:8px}
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--success);color:#fff;padding:14px 22px;border-radius:10px;font-weight:700;font-size:14px;opacity:0;transition:all .3s ease;z-index:9999;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.err{background:var(--danger)}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-msg{color:var(--muted);font-size:14px;padding:20px 0;text-align:center}
+.date-row{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.date-row label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+select,input[type=text],input[type=number],input[type=date]{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-family:var(--fb);font-size:14px;color:var(--text);background:var(--bg3);outline:none;transition:border-color .15s}
+select:focus,input:focus{border-color:var(--accent)}
+</style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="index.html">QB<span>L</span></a>
+  <div class="nav-links">
+    <a class="nb" href="index.html" style="text-decoration:none">Home</a>
+    <a class="nb active" href="score.html" style="text-decoration:none">Enter Score</a>
+  </div>
+  <button class="ham-btn" id="ham-btn" onclick="document.getElementById('ham-menu').classList.toggle('open')" aria-label="Menu">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect y="4" width="22" height="2.2" rx="1.1" fill="white"/><rect y="9.9" width="22" height="2.2" rx="1.1" fill="white"/><rect y="15.8" width="22" height="2.2" rx="1.1" fill="white"/></svg>
+  </button>
+</nav>
+<div class="ham-menu" id="ham-menu">
+  <a class="nb" href="index.html" style="text-decoration:none">Home</a>
+  <a class="nb active" href="score.html" style="text-decoration:none">Enter Score</a>
+</div>
+
+<div class="wrap">
+  <!-- STEP 0: SELECT TEAM A -->
+  <div class="step active" id="step-0">
+    <div class="step-header">
+      <div class="step-pill">Step 1 of 4</div>
+      <div class="step-title">Select Team A</div>
+      <div class="step-sub">Choose the first team</div>
+    </div>
+    <div class="date-row">
+      <label>Match Date</label>
+      <input type="date" id="match-date">
+    </div>
+    <div id="team-grid-a" class="team-grid"><div class="loading-msg">Loading teams…</div></div>
+    <button class="action-btn primary" id="next-0" onclick="goStep(1)" disabled>Next →</button>
+  </div>
+
+  <!-- STEP 1: SELECT TEAM B -->
+  <div class="step" id="step-1">
+    <div class="step-header">
+      <div class="step-pill">Step 2 of 4</div>
+      <div class="step-title">Select Team B</div>
+      <div class="step-sub" id="step1-sub">Choose the opposing team</div>
+    </div>
+    <div id="team-banner-a" class="team-banner"></div>
+    <div class="vs-row"><div class="vs-line"></div><div class="vs-badge">VS</div><div class="vs-line"></div></div>
+    <div id="team-grid-b" class="team-grid"></div>
+    <div id="pred-panel-container"></div>
+    <button class="action-btn primary" id="next-1" onclick="goStep(2)" disabled>Next →</button>
+    <button class="action-btn secondary" onclick="goStep(0)">← Back</button>
+  </div>
+
+  <!-- STEP 2: SCORES -->
+  <div class="step" id="step-2">
+    <div class="step-header">
+      <div class="step-pill">Step 3 of 4</div>
+      <div class="step-title">Enter Scores</div>
+      <div class="step-sub">Quadball: max score 170 pts (10 quaffle goals × 10 + 30 for snitch catch + extras)</div>
+    </div>
+    <div id="score-banners"></div>
+
+    <!-- Team A Score -->
+    <div class="score-section">
+      <div class="score-section-label" id="score-label-a">Team A Score</div>
+      <div class="score-display" id="score-disp-a">0</div>
+      <div class="score-sub">Tap a value or type below</div>
+      <div class="score-btns" id="score-btns-a"></div>
+      <input type="number" class="score-num-input" id="score-input-a" min="0" max="999" placeholder="Or type score" oninput="onScoreType('a')">
+    </div>
+
+    <!-- Team B Score -->
+    <div class="score-section">
+      <div class="score-section-label" id="score-label-b">Team B Score</div>
+      <div class="score-display" id="score-disp-b">0</div>
+      <div class="score-sub">Tap a value or type below</div>
+      <div class="score-btns" id="score-btns-b"></div>
+      <input type="number" class="score-num-input" id="score-input-b" min="0" max="999" placeholder="Or type score" oninput="onScoreType('b')">
+    </div>
+
+    <button class="action-btn primary" id="next-2" onclick="goStep(3)" disabled>Next →</button>
+    <button class="action-btn secondary" onclick="goStep(1)">← Back</button>
+  </div>
+
+  <!-- STEP 3: CONFIRM -->
+  <div class="step" id="step-3">
+    <div class="step-header">
+      <div class="step-pill">Step 4 of 4</div>
+      <div class="step-title">Confirm & Submit</div>
+      <div class="step-sub">Review and record the match</div>
+    </div>
+    <div id="confirm-box" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px"></div>
+    <button class="action-btn primary" id="submit-btn" onclick="submitScore()">RECORD MATCH</button>
+    <button class="action-btn secondary" onclick="goStep(2)">← Back</button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+// ── REPLACE WITH YOUR FIREBASE CONFIG ────────────────────────────────────────
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCSYAz6tnIOxG9MMkOUoDtMSRMFdkpT6KQ",
+  authDomain: "quadball-1596e.firebaseapp.com",
+  projectId: "quadball-1596e",
+  storageBucket: "quadball-1596e.firebasestorage.app",
+  messagingSenderId: "385141631326",
+  appId: "1:385141631326:web:cf0ba334d8af6027de47cf",
+  measurementId: "G-SJ8E8BB1TS"
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+const auth= getAuth(app);
+
+const RAW_CENTER=5, marginScale=12, performanceScale=0.1, MAX_SCORE=170;
+
+function toDisp(r){ return Math.max(0,Math.min(10,5+((r||RAW_CENTER)-RAW_CENTER))).toFixed(2); }
+function initials(n){ return (n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,3); }
+function calcDelta(r1,r2,s1,s2){
+  const prob=1/(1+Math.pow(10,(r2-r1)/2));
+  const expMargin=Math.min((r1-r2)*marginScale,MAX_SCORE*0.15);
+  const mf=0.2*((s1>s2)?(1-prob):(-prob));
+  const mf2=((s1-s2)-expMargin)/MAX_SCORE*performanceScale;
+  return parseFloat((mf+mf2).toFixed(5));
+}
+function toast(msg,err){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast'+(err?' err':'')+' show';
+  setTimeout(()=>t.className='toast',5000);
+}
+
+let teams=[], currentUser=null;
+let selA=null, selB=null, scoreA=0, scoreB=0;
+const QUICK_SCORES=[0,10,30,50,80,100,120,150,160,170];
+
+onSnapshot(collection(db,'teams'), snap=>{
+  teams=snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderTeamGridA();
+});
+onAuthStateChanged(auth,u=>{ currentUser=u; });
+
+// Set today as default date
+document.getElementById('match-date').value = localDateStr();
+
+function localDateStr(d=new Date()){
+  return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function renderTeamGridA(){
+  const grid=document.getElementById('team-grid-a');
+  if(!teams.length){ grid.innerHTML='<div class="loading-msg">No teams found. Add teams in Admin.</div>'; return; }
+  grid.innerHTML=teams.map(t=>`
+    <div class="team-card${selA===t.id?' selected':''}" onclick="selectTeamA('${t.id}')">
+      <div class="tc-av">${initials(t.name)}</div>
+      <div class="tc-name">${t.name}</div>
+      <div class="tc-rating">Rating: ${toDisp(t.rating||RAW_CENTER)}</div>
+      <div class="tc-check">✓</div>
+    </div>`).join('');
+  document.getElementById('next-0').disabled=!selA;
+}
+
+window.selectTeamA=function(id){
+  selA=id; renderTeamGridA();
+};
+
+function renderTeamGridB(){
+  const grid=document.getElementById('team-grid-b');
+  const tA=teams.find(t=>t.id===selA);
+  grid.innerHTML=teams.filter(t=>t.id!==selA).map(t=>`
+    <div class="team-card${selB===t.id?' selected':''}" onclick="selectTeamB('${t.id}')">
+      <div class="tc-av">${initials(t.name)}</div>
+      <div class="tc-name">${t.name}</div>
+      <div class="tc-rating">Rating: ${toDisp(t.rating||RAW_CENTER)}</div>
+      <div class="tc-check">✓</div>
+    </div>`).join('');
+  document.getElementById('team-banner-a').innerHTML=
+    `<div class="team-banner-label">Team A</div><div class="team-banner-name">${tA?.name||'?'}</div>`;
+  document.getElementById('next-1').disabled=!selB;
+  renderPredPanel();
+}
+
+window.selectTeamB=function(id){
+  selB=id;
+  const grid=document.getElementById('team-grid-b');
+  grid.querySelectorAll('.team-card').forEach(c=>c.classList.remove('selected'));
+  grid.querySelectorAll('.team-card').forEach(c=>{
+    if(c.querySelector('.tc-name').textContent===teams.find(t=>t.id===id)?.name) c.classList.add('selected');
+  });
+  // re-render to update check mark
+  renderTeamGridB();
+  document.getElementById('next-1').disabled=false;
+  renderPredPanel();
+};
+
+function renderPredPanel(){
+  const container=document.getElementById('pred-panel-container');
+  if(!selA||!selB){ container.innerHTML=''; return; }
+  const tA=teams.find(t=>t.id===selA), tB=teams.find(t=>t.id===selB);
+  if(!tA||!tB){ container.innerHTML=''; return; }
+  const rA=tA.rating||RAW_CENTER, rB=tB.rating||RAW_CENTER;
+  const prob=1/(1+Math.pow(10,(rB-rA)/2));
+  const pctA=Math.round(prob*100), pctB=100-pctA;
+  container.innerHTML=`<div class="pred-panel">
+    <div class="pred-panel-title">Win Probability</div>
+    <table class="pred-table">
+      <thead><tr>
+        <th class="pred-th-label">Team</th>
+        <th>${tA.name}</th>
+        <th>vs</th>
+        <th>${tB.name}</th>
+      </tr></thead>
+      <tbody><tr>
+        <td class="pred-td-label">Win %</td>
+        <td class="pred-td-a">${pctA}%</td>
+        <td class="pred-td-margin">–</td>
+        <td class="pred-td-b">${pctB}%</td>
+      </tr></tbody>
+    </table>
+  </div>`;
+}
+
+function renderScoreStep(){
+  const tA=teams.find(t=>t.id===selA), tB=teams.find(t=>t.id===selB);
+  document.getElementById('score-label-a').textContent=`${tA?.name||'Team A'} Score`;
+  document.getElementById('score-label-b').textContent=`${tB?.name||'Team B'} Score`;
+  document.getElementById('score-banners').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:16px">
+      <div class="team-banner"><div class="team-banner-label">Team A</div><div class="team-banner-name">${tA?.name||'?'}</div></div>
+      <div style="font-family:var(--fd);font-size:22px;font-weight:800;color:var(--muted);padding-top:16px">VS</div>
+      <div class="team-banner"><div class="team-banner-label">Team B</div><div class="team-banner-name">${tB?.name||'?'}</div></div>
+    </div>`;
+  buildScoreBtns('a'); buildScoreBtns('b');
+  updateScoreDisp();
+  document.getElementById('next-2').disabled=true;
+  document.getElementById('score-input-a').value='';
+  document.getElementById('score-input-b').value='';
+}
+
+function buildScoreBtns(side){
+  const el=document.getElementById(`score-btns-${side}`);
+  const cur=side==='a'?scoreA:scoreB;
+  el.innerHTML=QUICK_SCORES.map(v=>`<button class="score-btn${cur===v?' selected':''}" onclick="setScore('${side}',${v})">${v}</button>`).join('');
+}
+
+window.setScore=function(side,v){
+  if(side==='a') scoreA=v; else scoreB=v;
+  document.getElementById(`score-input-${side}`).value='';
+  buildScoreBtns('a'); buildScoreBtns('b');
+  updateScoreDisp();
+};
+
+window.onScoreType=function(side){
+  const v=parseInt(document.getElementById(`score-input-${side}`).value)||0;
+  if(side==='a') scoreA=v; else scoreB=v;
+  buildScoreBtns('a'); buildScoreBtns('b');
+  updateScoreDisp();
+};
+
+function updateScoreDisp(){
+  document.getElementById('score-disp-a').textContent=scoreA;
+  document.getElementById('score-disp-b').textContent=scoreB;
+  const valid=scoreA!==scoreB; // can't tie in quadball
+  document.getElementById('next-2').disabled=!valid;
+}
+
+function renderConfirm(){
+  const tA=teams.find(t=>t.id===selA), tB=teams.find(t=>t.id===selB);
+  const winA=scoreA>scoreB;
+  const wTeam=winA?tA:tB, lTeam=winA?tB:tA;
+  const wScore=winA?scoreA:scoreB, lScore=winA?scoreB:scoreA;
+  const rA=tA?.rating||RAW_CENTER, rB=tB?.rating||RAW_CENTER;
+  const delta=calcDelta(rA,rB,scoreA,scoreB);
+  const deltaDisp=(delta>0?'+':'')+delta.toFixed(3);
+  document.getElementById('confirm-box').innerHTML=`
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Winner</div>
+      <div style="font-family:var(--fd);font-size:36px;font-weight:800;color:var(--accent);letter-spacing:1px">🏆 ${wTeam?.name||'?'}</div>
+      <div style="font-family:var(--fd);font-size:28px;font-weight:700;margin-top:8px">${wScore} – ${lScore}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div style="background:var(--bg3);border-radius:8px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:4px">${tA?.name}</div>
+        <div style="font-family:var(--fd);font-size:24px;font-weight:700">${scoreA}</div>
+        <div style="font-size:11px;color:${winA?'var(--success)':'var(--danger)'};font-weight:700;margin-top:4px">${winA?'WIN':'LOSS'}</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:8px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:4px">${tB?.name}</div>
+        <div style="font-family:var(--fd);font-size:24px;font-weight:700">${scoreB}</div>
+        <div style="font-size:11px;color:${!winA?'var(--success)':'var(--danger)'};font-weight:700;margin-top:4px">${!winA?'WIN':'LOSS'}</div>
+      </div>
+    </div>
+    <div style="background:var(--bg3);border-radius:8px;padding:12px;text-align:center">
+      <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:4px">Rating Change (${tA?.name})</div>
+      <div style="font-family:var(--fd);font-size:24px;font-weight:700;color:${winA?'var(--success)':'var(--danger)'}">${winA?'+'+Math.abs(delta).toFixed(3):'-'+Math.abs(delta).toFixed(3)}</div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-top:12px;text-align:center">Date: ${document.getElementById('match-date').value||localDateStr()}</div>`;
+}
+
+window.goStep=function(n){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.getElementById(`step-${n}`).classList.add('active');
+  if(n===1) renderTeamGridB();
+  if(n===2) renderScoreStep();
+  if(n===3) renderConfirm();
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+
+window.submitScore=async function(){
+  const btn=document.getElementById('submit-btn');
+  if(!selA||!selB||scoreA===scoreB){ toast('Invalid match data',true); return; }
+  const tA=teams.find(t=>t.id===selA), tB=teams.find(t=>t.id===selB);
+  if(!tA||!tB){ toast('Teams not found',true); return; }
+
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Saving…';
+
+  const rA=tA.rating||RAW_CENTER, rB=tB.rating||RAW_CENTER;
+  const rLA=tA.lifetimeRating||rA, rLB=tB.lifetimeRating||rB;
+  const deltaS=calcDelta(rA,rB,scoreA,scoreB);
+  const deltaL=calcDelta(rLA,rLB,scoreA,scoreB);
+  const winA=scoreA>scoreB;
+  const date=document.getElementById('match-date').value||localDateStr();
+
+  try{
+    // Update Team A
+    await updateDoc(doc(db,'teams',selA),{
+      rating:rA+deltaS,
+      lifetimeRating:rLA+deltaL,
+      wins:(tA.wins||0)+(winA?1:0),
+      losses:(tA.losses||0)+(winA?0:1),
+      totalPoints:(tA.totalPoints||0)+scoreA,
+      seasonGames:(tA.seasonGames||0)+1,
+      lifetimeGames:(tA.lifetimeGames||0)+1,
+      seasonYear:new Date().getFullYear()
+    });
+    // Update Team B
+    await updateDoc(doc(db,'teams',selB),{
+      rating:rB-deltaS,
+      lifetimeRating:rLB-deltaL,
+      wins:(tB.wins||0)+(winA?0:1),
+      losses:(tB.losses||0)+(winA?1:0),
+      totalPoints:(tB.totalPoints||0)+scoreB,
+      seasonGames:(tB.seasonGames||0)+1,
+      lifetimeGames:(tB.lifetimeGames||0)+1,
+      seasonYear:new Date().getFullYear()
+    });
+    // Log match
+    await addDoc(collection(db,'matches'),{
+      teamA:selA, teamB:selB,
+      scoreA, scoreB,
+      winner:winA?selA:selB,
+      loser:winA?selB:selA,
+      scoreW:winA?scoreA:scoreB,
+      scoreL:winA?scoreB:scoreA,
+      ratingDelta:Math.abs(deltaS).toFixed(3),
+      ratingChanges:{[selA]:deltaS,[selB]:-deltaS},
+      lifetimeRatingChanges:{[selA]:deltaL,[selB]:-deltaL},
+      date, timestamp:Date.now(),
+      enteredBy:currentUser?.uid||null
+    });
+    toast(`Match recorded! ${winA?tA.name:tB.name} wins ${winA?scoreA:scoreB}–${winA?scoreB:scoreA} 🏆`);
+    selA=null; selB=null; scoreA=0; scoreB=0;
+    setTimeout(()=>goStep(0), 1500);
+  } catch(e){ toast('Error: '+e.message,true); }
+  btn.disabled=false; btn.textContent='RECORD MATCH';
+};
+
+function localDateStr(d=new Date()){
+  return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+</script>
+</body>
+</html>

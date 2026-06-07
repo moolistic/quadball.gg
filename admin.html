@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin – Quadball League</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#C8A84B;--accent2:#7B5EA7;--bg:#0A0A0F;--bg2:#111118;--bg3:#18181F;
+  --card:#16161E;--text:#E8E8F0;--muted:#6B6B80;
+  --border:rgba(255,255,255,0.07);--danger:#E24B4B;--success:#3DBF7A;
+  --fd:'Barlow Condensed',sans-serif;--fb:'Barlow',sans-serif;--rad:10px
+}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:54px;position:sticky;top:0;z-index:100}
+.brand{font-family:var(--fd);font-size:22px;font-weight:900;color:var(--accent);letter-spacing:2px;margin-right:14px;white-space:nowrap;text-decoration:none}
+.brand span{color:#fff}
+.nav-links{display:flex;gap:2px;flex:1}
+.nb{background:none;border:none;color:rgba(255,255,255,0.5);font-family:var(--fb);font-size:13px;font-weight:600;padding:8px 12px;border-radius:6px;cursor:pointer;transition:all .15s;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center}
+.nb:hover{background:rgba(255,255,255,0.06);color:#fff}
+.nb.active{background:rgba(200,168,75,0.12);color:var(--accent)}
+.wrap{padding:28px 20px;max-width:960px;margin:0 auto}
+select,input[type=text],input[type=number],input[type=password],input[type=date],textarea{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-family:var(--fb);font-size:14px;color:var(--text);background:var(--bg3);outline:none;transition:border-color .15s}
+textarea{resize:vertical;min-height:60px;line-height:1.5}
+select:focus,input:focus,textarea:focus{border-color:var(--accent)}
+.fg{display:flex;flex-direction:column;gap:6px}
+.fg label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.admin-lock{display:flex;align-items:center;justify-content:center;min-height:60vh}
+.admin-lock-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:40px;width:380px;max-width:90vw;text-align:center}
+.admin-lock-box .pt{font-family:var(--fd);font-size:30px;font-weight:800;margin-bottom:8px;letter-spacing:1.5px;text-transform:uppercase}
+.admin-lock-box .ps{color:var(--muted);font-size:14px;margin-bottom:28px}
+.ph{margin-bottom:28px}
+.pt{font-family:var(--fd);font-size:38px;font-weight:800;letter-spacing:1.5px;line-height:1;text-transform:uppercase}
+.ps{color:var(--muted);font-size:13px;margin-top:5px;font-weight:500}
+.admin-section{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);overflow:hidden;margin-bottom:24px}
+.admin-section-hdr{background:var(--bg3);padding:12px 20px;font-family:var(--fd);font-size:18px;font-weight:800;letter-spacing:1px;color:var(--accent);border-bottom:1px solid var(--border);text-transform:uppercase}
+.admin-row{display:flex;align-items:center;gap:10px;padding:13px 20px;border-top:1px solid var(--border);font-size:14px}
+.admin-row:first-child{border-top:none}
+.admin-row-info{flex:1;min-width:0}
+.admin-row-info strong{display:block;font-weight:700;font-size:15px}
+.admin-row-info span{font-size:12px;color:var(--muted)}
+.icon-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--fb);transition:all .15s;white-space:nowrap;color:var(--text)}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+.icon-btn.danger:hover{border-color:var(--danger);color:var(--danger)}
+.fbtn{background:none;border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;font-family:var(--fb);transition:all .15s}
+.fbtn:hover{border-color:var(--accent);color:var(--accent)}
+.av{width:48px;height:48px;border-radius:50%;background:rgba(200,168,75,0.1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:18px;font-weight:800;color:var(--accent);flex-shrink:0}
+.moverlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.moverlay.open{opacity:1;pointer-events:auto}
+.mbox{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.mt2{font-family:var(--fd);font-size:26px;font-weight:800;margin-bottom:16px;letter-spacing:1px;text-transform:uppercase}
+.macts{display:flex;gap:10px;margin-top:20px}
+.bsec{flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:var(--fb);font-size:14px;font-weight:600;cursor:pointer;background:none;color:var(--text)}
+.bsec:hover{border-color:var(--accent);color:var(--accent)}
+.bpri{flex:1;padding:10px;background:var(--accent);border:none;border-radius:8px;font-family:var(--fb);font-size:14px;font-weight:700;cursor:pointer;color:#000}
+.bdanger{flex:1;padding:10px;background:var(--danger);border:none;border-radius:8px;font-family:var(--fb);font-size:14px;font-weight:700;cursor:pointer;color:#fff}
+.es{text-align:center;padding:48px 20px;color:var(--muted)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--success);color:#fff;padding:14px 22px;border-radius:10px;font-weight:700;font-size:14px;transform:translateY(80px);opacity:0;transition:all .3s ease;z-index:9999;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.err{background:var(--danger)}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay{text-align:center;padding:60px 20px;color:var(--muted)}
+.loading-overlay .spinner{width:32px;height:32px;margin:0 auto;display:block}
+.subbtn{width:100%;background:var(--accent);color:#000;border:none;border-radius:8px;padding:13px;font-family:var(--fd);font-size:20px;font-weight:800;letter-spacing:1.5px;cursor:pointer;margin-top:4px;transition:all .15s}
+.subbtn:hover{background:#E0C060}
+@media(max-width:600px){
+  .wrap{padding:12px 10px}
+  .pt{font-size:26px}
+  .admin-row{flex-wrap:wrap;padding:10px 12px}
+  .admin-row-info{width:100%}
+  .mbox{padding:20px 16px}
+  .fr{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="index.html">QB<span>L</span></a>
+  <div class="nav-links">
+    <a class="nb" href="index.html" style="text-decoration:none">← Back to League</a>
+    <span class="nb active" style="cursor:default">Admin</span>
+  </div>
+</nav>
+
+<!-- LOCK SCREEN -->
+<div id="admin-lock" class="admin-lock">
+  <div class="admin-lock-box">
+    <div class="pt">Admin Panel</div>
+    <div class="ps">Enter password to manage teams and matches</div>
+    <input type="password" id="admin-pw" placeholder="Password" style="margin-bottom:14px" onkeydown="if(event.key==='Enter')unlock()">
+    <button class="subbtn" onclick="unlock()">UNLOCK</button>
+    <div id="lock-err" style="color:var(--danger);font-size:13px;margin-top:10px;font-weight:600"></div>
+  </div>
+</div>
+
+<!-- ADMIN CONTENT -->
+<div id="admin-content" style="display:none">
+<div class="wrap">
+  <div class="ph">
+    <div class="pt">Admin Panel</div>
+    <div class="ps">Manage teams, matches, and league settings</div>
+  </div>
+
+  <!-- ADD TEAM -->
+  <div class="admin-section">
+    <div class="admin-section-hdr" style="display:flex;align-items:center;justify-content:space-between">
+      <span>Teams</span>
+      <button class="fbtn" style="background:var(--accent);border-color:var(--accent);color:#000;font-weight:700" onclick="openAddTeam()">+ Add Team</button>
+    </div>
+    <div id="teams-list"><div class="loading-overlay"><div class="spinner"></div></div></div>
+  </div>
+
+  <!-- RECENT MATCHES -->
+  <div class="admin-section">
+    <div class="admin-section-hdr">Recent Matches</div>
+    <div id="matches-list"><div class="loading-overlay"><div class="spinner"></div></div></div>
+  </div>
+
+  <!-- SEASON RESET -->
+  <div class="admin-section">
+    <div class="admin-section-hdr">Season Management</div>
+    <div class="admin-row">
+      <div class="admin-row-info">
+        <strong>Reset Season Ratings</strong>
+        <span>Resets all team season ratings to 5.000 and clears season W/L/GP. Lifetime stats are preserved.</span>
+      </div>
+      <button class="icon-btn danger" onclick="resetSeason()">Reset Season</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ADD/EDIT TEAM MODAL -->
+<div class="moverlay" id="modal-team" onclick="closeModal('modal-team',event)">
+  <div class="mbox">
+    <div class="mt2" id="modal-team-title">Add Team</div>
+    <div class="fr">
+      <div class="fg"><label>Team Name *</label><input type="text" id="t-name" placeholder="e.g. Thunder Hoops"></div>
+      <div class="fg"><label>Founded Year</label><input type="number" id="t-founded" placeholder="2024"></div>
+    </div>
+    <div class="fg" style="margin-bottom:16px"><label>Home Pitch / Location</label><input type="text" id="t-pitch" placeholder="Park, arena, etc."></div>
+    <div class="fg" style="margin-bottom:16px"><label>Team Color (hex)</label><input type="text" id="t-color" placeholder="#C8A84B"></div>
+    <div class="fr">
+      <div class="fg"><label>Season Rating</label><input type="number" id="t-rating" step="0.001" placeholder="5.000"></div>
+      <div class="fg"><label>Lifetime Rating</label><input type="number" id="t-lifetimeRating" step="0.001" placeholder="5.000"></div>
+    </div>
+    <div class="macts">
+      <button class="bsec" onclick="closeModal('modal-team')">Cancel</button>
+      <button id="t-delete-btn" class="bdanger" style="display:none" onclick="deleteTeam()">Delete</button>
+      <button class="bpri" onclick="saveTeam()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE MATCH CONFIRM -->
+<div class="moverlay" id="modal-match-del" onclick="closeModal('modal-match-del',event)">
+  <div class="mbox" style="max-width:400px">
+    <div class="mt2">Delete Match?</div>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:4px">This will remove the match record. <strong style="color:var(--danger)">Rating changes are NOT automatically reversed.</strong> Use "Recalculate Ratings" after deletion if needed.</p>
+    <div class="macts">
+      <button class="bsec" onclick="closeModal('modal-match-del')">Cancel</button>
+      <button class="bdanger" onclick="confirmDeleteMatch()">Delete Match</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, writeBatch, getDocs }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ── REPLACE WITH YOUR FIREBASE CONFIG ────────────────────────────────────────
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCSYAz6tnIOxG9MMkOUoDtMSRMFdkpT6KQ",
+  authDomain: "quadball-1596e.firebaseapp.com",
+  projectId: "quadball-1596e",
+  storageBucket: "quadball-1596e.firebasestorage.app",
+  messagingSenderId: "385141631326",
+  appId: "1:385141631326:web:cf0ba334d8af6027de47cf",
+  measurementId: "G-SJ8E8BB1TS"
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+const ADMIN_PASS = 'changeme'; // Change this!
+const RAW_CENTER = 5;
+
+function initials(n){ return (n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,3); }
+function toDisp(r){ return parseFloat(r||RAW_CENTER).toFixed(3); }
+
+function toast(msg,err){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast'+(err?' err':'')+' show';
+  setTimeout(()=>t.className='toast',5000);
+}
+
+let teams=[], matches=[], _unlocked=false;
+
+window.unlock=function(){
+  const pw=document.getElementById('admin-pw').value;
+  if(pw===ADMIN_PASS){
+    document.getElementById('admin-lock').style.display='none';
+    document.getElementById('admin-content').style.display='';
+    _unlocked=true;
+  } else {
+    document.getElementById('lock-err').textContent='Incorrect password.';
+  }
+};
+
+onSnapshot(collection(db,'teams'), snap=>{
+  teams=snap.docs.map(d=>({id:d.id,...d.data()}));
+  teams.sort((a,b)=>a.name.localeCompare(b.name));
+  renderTeams();
+});
+onSnapshot(collection(db,'matches'), snap=>{
+  matches=snap.docs.map(d=>({id:d.id,...d.data()}));
+  matches.sort((a,b)=>b.timestamp-a.timestamp);
+  renderMatches();
+});
+
+function renderTeams(){
+  const el=document.getElementById('teams-list');
+  if(!el) return;
+  if(!teams.length){ el.innerHTML=`<div class="es">No teams yet. Add one above.</div>`; return; }
+  el.innerHTML=teams.map(t=>`
+    <div class="admin-row">
+      <div class="av">${initials(t.name)}</div>
+      <div class="admin-row-info">
+        <strong>${t.name}</strong>
+        <span>Season: ${toDisp(t.rating)} · Lifetime: ${toDisp(t.lifetimeRating||t.rating)} · W${t.wins||0}/L${t.losses||0} · ${t.seasonGames||0} GP</span>
+      </div>
+      <button class="icon-btn" onclick="openEditTeam('${t.id}')">Edit</button>
+      <button class="icon-btn danger" onclick="confirmDeleteTeamById('${t.id}')">Delete</button>
+    </div>`).join('');
+}
+
+function renderMatches(){
+  const el=document.getElementById('matches-list');
+  if(!el) return;
+  const recent=matches.slice(0,30);
+  if(!recent.length){ el.innerHTML=`<div class="es">No matches yet.</div>`; return; }
+  el.innerHTML=recent.map(m=>{
+    const wTeam=teams.find(t=>t.id===m.winner);
+    const lTeam=teams.find(t=>t.id===m.loser);
+    return`<div class="admin-row">
+      <div class="admin-row-info">
+        <strong>🏆 ${wTeam?.name||'?'} ${m.scoreW??'?'} – ${m.scoreL??'?'} ${lTeam?.name||'?'}</strong>
+        <span>${m.date||''} · Δ ${m.ratingDelta||'?'}</span>
+      </div>
+      <button class="icon-btn danger" onclick="openDeleteMatch('${m.id}')">Delete</button>
+    </div>`;
+  }).join('');
+}
+
+// ── Team CRUD ─────────────────────────────────────────────────────────────────
+let _editingTeamId=null;
+window.openAddTeam=function(){
+  _editingTeamId=null;
+  document.getElementById('modal-team-title').textContent='Add Team';
+  ['t-name','t-founded','t-pitch','t-color','t-rating','t-lifetimeRating'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('t-delete-btn').style.display='none';
+  openModal('modal-team');
+};
+window.openEditTeam=function(id){
+  const t=teams.find(x=>x.id===id); if(!t) return;
+  _editingTeamId=id;
+  document.getElementById('modal-team-title').textContent='Edit Team';
+  document.getElementById('t-name').value=t.name||'';
+  document.getElementById('t-founded').value=t.founded||'';
+  document.getElementById('t-pitch').value=t.pitch||'';
+  document.getElementById('t-color').value=t.color||'';
+  document.getElementById('t-rating').value=t.rating!=null?t.rating:'';
+  document.getElementById('t-lifetimeRating').value=t.lifetimeRating!=null?t.lifetimeRating:'';
+  document.getElementById('t-delete-btn').style.display='';
+  openModal('modal-team');
+};
+window.saveTeam=async function(){
+  const name=document.getElementById('t-name').value.trim();
+  if(!name){ toast('Team name is required',true); return; }
+  const rInput=document.getElementById('t-rating').value;
+  const lrInput=document.getElementById('t-lifetimeRating').value;
+  const data={
+    name,
+    founded:document.getElementById('t-founded').value||null,
+    pitch:document.getElementById('t-pitch').value||null,
+    color:document.getElementById('t-color').value||null,
+    rating:rInput!==''?parseFloat(rInput):RAW_CENTER,
+    lifetimeRating:lrInput!==''?parseFloat(lrInput):RAW_CENTER,
+  };
+  try{
+    if(_editingTeamId) await updateDoc(doc(db,'teams',_editingTeamId),data);
+    else{
+      data.wins=0; data.losses=0; data.seasonGames=0; data.lifetimeGames=0;
+      data.totalPoints=0; data.seasonYear=new Date().getFullYear();
+      await addDoc(collection(db,'teams'),data);
+    }
+    closeModal('modal-team');
+    toast(_editingTeamId?'Team updated!':'Team added!');
+  }catch(e){ toast('Error: '+e.message,true); }
+};
+window.deleteTeam=async function(){
+  if(!_editingTeamId||!confirm(`Delete ${teams.find(t=>t.id===_editingTeamId)?.name}? This cannot be undone.`)) return;
+  try{ await deleteDoc(doc(db,'teams',_editingTeamId)); closeModal('modal-team'); toast('Team deleted'); }
+  catch(e){ toast('Error: '+e.message,true); }
+};
+window.confirmDeleteTeamById=async function(id){
+  const t=teams.find(x=>x.id===id);
+  if(!t||!confirm(`Delete ${t.name}?`)) return;
+  try{ await deleteDoc(doc(db,'teams',id)); toast('Team deleted'); }
+  catch(e){ toast('Error: '+e.message,true); }
+};
+
+// ── Match deletion ────────────────────────────────────────────────────────────
+let _delMatchId=null;
+window.openDeleteMatch=function(id){ _delMatchId=id; openModal('modal-match-del'); };
+window.confirmDeleteMatch=async function(){
+  if(!_delMatchId) return;
+  try{ await deleteDoc(doc(db,'matches',_delMatchId)); closeModal('modal-match-del'); toast('Match deleted'); _delMatchId=null; }
+  catch(e){ toast('Error: '+e.message,true); }
+};
+
+// ── Season Reset ──────────────────────────────────────────────────────────────
+window.resetSeason=async function(){
+  if(!confirm('Reset all season ratings to 5.000 and clear season W/L/GP? Lifetime data is kept.')) return;
+  try{
+    const batch=writeBatch(db);
+    teams.forEach(t=>{
+      batch.update(doc(db,'teams',t.id),{
+        rating:RAW_CENTER, wins:0, losses:0, seasonGames:0, totalPoints:0, seasonYear:new Date().getFullYear()
+      });
+    });
+    await batch.commit();
+    toast('Season reset! All teams start at 5.000');
+  } catch(e){ toast('Error: '+e.message,true); }
+};
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+window.closeModal=function(id,e){if(!e||e.target===document.getElementById(id))document.getElementById(id).classList.remove('open');};
+</script>
+</body>
+</html>

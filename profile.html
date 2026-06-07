@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile – Quadball League</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#C8A84B;--bg:#0A0A0F;--bg2:#111118;--bg3:#18181F;
+  --card:#16161E;--text:#E8E8F0;--muted:#6B6B80;
+  --border:rgba(255,255,255,0.07);--danger:#E24B4B;--success:#3DBF7A;
+  --fd:'Barlow Condensed',sans-serif;--fb:'Barlow',sans-serif;--rad:10px
+}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:54px;position:sticky;top:0;z-index:100}
+.brand{font-family:var(--fd);font-size:22px;font-weight:900;color:var(--accent);letter-spacing:2px;margin-right:14px;text-decoration:none}
+.brand span{color:#fff}
+.nb{background:none;border:none;color:rgba(255,255,255,0.5);font-family:var(--fb);font-size:13px;font-weight:600;padding:8px 12px;border-radius:6px;cursor:pointer;transition:all .15s;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center}
+.nb:hover{background:rgba(255,255,255,0.06);color:#fff}
+.wrap{padding:28px 20px;max-width:560px;margin:0 auto}
+.pt{font-family:var(--fd);font-size:38px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+.ps{color:var(--muted);font-size:13px;font-weight:500;margin-bottom:28px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);padding:28px;margin-bottom:16px}
+.fg{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.fg label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+input[type=text],input[type=email],input[type=password]{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:8px;font-family:var(--fb);font-size:14px;color:var(--text);background:var(--bg3);outline:none;transition:border-color .15s}
+input:focus{border-color:var(--accent)}
+.btn{width:100%;padding:13px;border:none;border-radius:8px;font-family:var(--fd);font-size:20px;font-weight:800;letter-spacing:1.5px;cursor:pointer;transition:all .15s;margin-bottom:10px}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:hover{background:#E0C060}
+.btn-secondary{background:none;border:1px solid var(--border);color:var(--muted);font-size:15px;letter-spacing:.5px}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-danger{background:none;border:1px solid var(--danger);color:var(--danger);font-size:15px;letter-spacing:.5px}
+.btn-danger:hover{background:var(--danger);color:#fff}
+.tab-row{display:flex;gap:4px;margin-bottom:20px}
+.tab{flex:1;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:var(--fb);font-size:14px;font-weight:600;cursor:pointer;background:none;color:var(--muted);transition:all .15s;text-align:center}
+.tab.active{background:rgba(200,168,75,0.1);border-color:var(--accent);color:var(--accent)}
+.av-lg{width:72px;height:72px;border-radius:50%;background:rgba(200,168,75,0.1);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:28px;font-weight:800;color:var(--accent);margin:0 auto 16px}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--success);color:#fff;padding:14px 22px;border-radius:10px;font-weight:700;font-size:14px;transform:translateY(80px);opacity:0;transition:all .3s ease;z-index:9999;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.err{background:var(--danger)}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+#auth-loading{text-align:center;padding:60px 20px;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="index.html">QB<span>L</span></a>
+  <a class="nb" href="index.html" style="text-decoration:none">← Back to League</a>
+</nav>
+
+<div class="wrap">
+  <div id="auth-loading" style="text-align:center;padding:60px 20px;color:var(--muted)">
+    <div style="display:inline-block;width:32px;height:32px;border:2px solid rgba(255,255,255,0.1);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite"></div>
+  </div>
+
+  <!-- SIGNED OUT: Login / Register -->
+  <div id="auth-panel" style="display:none">
+    <div class="pt">My Profile</div>
+    <div class="ps">Sign in to track your team's history</div>
+    <div class="tab-row">
+      <button class="tab active" id="tab-signin" onclick="switchTab('signin')">Sign In</button>
+      <button class="tab" id="tab-register" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <!-- SIGN IN -->
+    <div id="panel-signin" class="card">
+      <div class="fg"><label>Email</label><input type="email" id="si-email" placeholder="you@example.com" autocomplete="email"></div>
+      <div class="fg"><label>Password</label><input type="password" id="si-pass" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')signIn()"></div>
+      <button class="btn btn-primary" onclick="signIn()">SIGN IN</button>
+      <button class="btn btn-secondary" onclick="resetPassword()">Forgot Password?</button>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="panel-register" class="card" style="display:none">
+      <div class="fg"><label>Email</label><input type="email" id="reg-email" placeholder="you@example.com" autocomplete="email"></div>
+      <div class="fg"><label>Password (min 6 chars)</label><input type="password" id="reg-pass" placeholder="Password" autocomplete="new-password"></div>
+      <div class="fg"><label>Confirm Password</label><input type="password" id="reg-pass2" placeholder="Confirm password" onkeydown="if(event.key==='Enter')register()"></div>
+      <button class="btn btn-primary" onclick="register()">CREATE ACCOUNT</button>
+    </div>
+  </div>
+
+  <!-- SIGNED IN: Profile -->
+  <div id="profile-panel" style="display:none">
+    <div class="pt">My Profile</div>
+    <div class="ps" id="profile-sub">Manage your account</div>
+
+    <div class="card" style="text-align:center">
+      <div class="av-lg" id="profile-av">?</div>
+      <div style="font-family:var(--fd);font-size:28px;font-weight:800;letter-spacing:1px;text-transform:uppercase" id="profile-name">—</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px" id="profile-email">—</div>
+    </div>
+
+    <div class="card">
+      <div style="font-family:var(--fd);font-size:18px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;color:var(--accent)">Edit Profile</div>
+      <div class="fg"><label>Display Name</label><input type="text" id="edit-name" placeholder="Your name"></div>
+      <div class="fg"><label>Team (optional)</label><input type="text" id="edit-team" placeholder="Your team name"></div>
+      <button class="btn btn-primary" onclick="saveProfile()">SAVE CHANGES</button>
+    </div>
+
+    <div class="card">
+      <button class="btn btn-danger" onclick="signOut()">SIGN OUT</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+         createUserWithEmailAndPassword, sendPasswordResetEmail, signOut as fbSignOut, updateProfile }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+// ── REPLACE WITH YOUR FIREBASE CONFIG ────────────────────────────────────────
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCSYAz6tnIOxG9MMkOUoDtMSRMFdkpT6KQ",
+  authDomain: "quadball-1596e.firebaseapp.com",
+  projectId: "quadball-1596e",
+  storageBucket: "quadball-1596e.firebasestorage.app",
+  messagingSenderId: "385141631326",
+  appId: "1:385141631326:web:cf0ba334d8af6027de47cf",
+  measurementId: "G-SJ8E8BB1TS"
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
+const app  = initializeApp(firebaseConfig);
+const db   = getFirestore(app);
+const auth = getAuth(app);
+
+function initials(n){ return (n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+function toast(msg,err){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast'+(err?' err':'')+' show';
+  setTimeout(()=>t.className='toast',5000);
+}
+
+let currentUser=null, userProfile=null;
+
+onAuthStateChanged(auth, async user=>{
+  document.getElementById('auth-loading').style.display='none';
+  currentUser=user;
+  if(user){
+    try{
+      const snap=await getDoc(doc(db,'users',user.uid));
+      userProfile=snap.exists()?snap.data():null;
+    } catch(e){ userProfile=null; }
+    showProfile(user);
+  } else {
+    document.getElementById('auth-panel').style.display='';
+    document.getElementById('profile-panel').style.display='none';
+  }
+});
+
+function showProfile(user){
+  document.getElementById('auth-panel').style.display='none';
+  document.getElementById('profile-panel').style.display='';
+  const name=userProfile?.displayName||user.displayName||user.email.split('@')[0];
+  document.getElementById('profile-av').textContent=initials(name);
+  document.getElementById('profile-name').textContent=name;
+  document.getElementById('profile-email').textContent=user.email;
+  document.getElementById('edit-name').value=name;
+  document.getElementById('edit-team').value=userProfile?.teamName||'';
+}
+
+window.switchTab=function(tab){
+  document.getElementById('tab-signin').classList.toggle('active',tab==='signin');
+  document.getElementById('tab-register').classList.toggle('active',tab==='register');
+  document.getElementById('panel-signin').style.display=tab==='signin'?'':'none';
+  document.getElementById('panel-register').style.display=tab==='register'?'':'none';
+};
+
+window.signIn=async function(){
+  const email=document.getElementById('si-email').value.trim();
+  const pass=document.getElementById('si-pass').value;
+  if(!email||!pass){ toast('Email and password required',true); return; }
+  try{ await signInWithEmailAndPassword(auth,email,pass); toast('Signed in!'); }
+  catch(e){ toast(e.message,true); }
+};
+
+window.register=async function(){
+  const email=document.getElementById('reg-email').value.trim();
+  const pass=document.getElementById('reg-pass').value;
+  const pass2=document.getElementById('reg-pass2').value;
+  if(!email||!pass){ toast('All fields required',true); return; }
+  if(pass!==pass2){ toast('Passwords do not match',true); return; }
+  if(pass.length<6){ toast('Password must be at least 6 characters',true); return; }
+  try{
+    const cred=await createUserWithEmailAndPassword(auth,email,pass);
+    await setDoc(doc(db,'users',cred.user.uid),{email,displayName:'',teamName:'',createdAt:Date.now()});
+    toast('Account created!');
+  } catch(e){ toast(e.message,true); }
+};
+
+window.saveProfile=async function(){
+  if(!currentUser) return;
+  const name=document.getElementById('edit-name').value.trim();
+  const team=document.getElementById('edit-team').value.trim();
+  try{
+    await updateDoc(doc(db,'users',currentUser.uid),{displayName:name,teamName:team});
+    if(name) await updateProfile(currentUser,{displayName:name});
+    userProfile={...userProfile,displayName:name,teamName:team};
+    showProfile(currentUser);
+    toast('Profile saved!');
+  } catch(e){ toast(e.message,true); }
+};
+
+window.resetPassword=async function(){
+  const email=document.getElementById('si-email').value.trim();
+  if(!email){ toast('Enter your email first',true); return; }
+  try{ await sendPasswordResetEmail(auth,email); toast('Reset email sent!'); }
+  catch(e){ toast(e.message,true); }
+};
+
+window.signOut=async function(){
+  try{ await fbSignOut(auth); toast('Signed out'); }
+  catch(e){ toast(e.message,true); }
+};
+</script>
+</body>
+</html>
