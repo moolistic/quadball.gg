@@ -376,13 +376,20 @@ window.adminSignInGoogle=async function(){
 onAuthStateChanged(auth, async user=>{
   currentUser=user;
   if(!user){ showLock('Sign in with your admin Google account to continue.'); return; }
-  const isSuper=user.email===SUPER_ADMIN;
-  let isAdmin=isSuper;
-  if(!isAdmin){
+  const userEmailNormalized = (user.email || '').toLowerCase();
+  const isSuper = userEmailNormalized === SUPER_ADMIN.toLowerCase();
+  let isAdmin = isSuper;
+if(!isAdmin){
     try{
       const snap=await getDoc(doc(db,'settings','admins'));
-      isAdmin=(snap.exists()?(snap.data().emails||[]):[]).includes(user.email);
-    }catch(e){}
+      if (snap.exists()) {
+        const emailList = snap.data().emails || [];
+        // Map the database list to lowercase to guarantee a foolproof match
+        isAdmin = emailList.map(e => String(e).toLowerCase()).includes(userEmailNormalized);
+      }
+    }catch(e){
+      console.error("Error fetching admin list:", e);
+    }
   }
   if(!isAdmin){ showLock(`Access denied. ${user.email} is not an admin.`,'signout'); return; }
   if(isSuper) await ensureSuperAdmin();
