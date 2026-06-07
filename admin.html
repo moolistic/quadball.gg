@@ -22,16 +22,19 @@ nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;d
 .nb:hover{background:rgba(255,255,255,0.06);color:#fff}
 .nb.active{background:rgba(200,168,75,0.12);color:var(--accent)}
 .wrap{padding:28px 20px;max-width:960px;margin:0 auto}
-select,input[type=text],input[type=number],input[type=password],input[type=date],textarea{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-family:var(--fb);font-size:14px;color:var(--text);background:var(--bg3);outline:none;transition:border-color .15s}
+select,input[type=text],input[type=url],input[type=number],input[type=date],textarea{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-family:var(--fb);font-size:14px;color:var(--text);background:var(--bg3);outline:none;transition:border-color .15s}
 textarea{resize:vertical;min-height:60px;line-height:1.5}
 select:focus,input:focus,textarea:focus{border-color:var(--accent)}
 .fg{display:flex;flex-direction:column;gap:6px}
 .fg label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+/* Access denied / loading screens */
 .admin-lock{display:flex;align-items:center;justify-content:center;min-height:60vh}
-.admin-lock-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:40px;width:380px;max-width:90vw;text-align:center}
+.admin-lock-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:48px 40px;width:420px;max-width:90vw;text-align:center}
 .admin-lock-box .pt{font-family:var(--fd);font-size:30px;font-weight:800;margin-bottom:8px;letter-spacing:1.5px;text-transform:uppercase}
 .admin-lock-box .ps{color:var(--muted);font-size:14px;margin-bottom:28px}
+.btn-google{background:#fff;color:#222;border:none;border-radius:8px;width:100%;padding:12px 16px;font-family:var(--fb);font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .15s}
+.btn-google:hover{background:#f0f0f0}
 .ph{margin-bottom:28px}
 .pt{font-family:var(--fd);font-size:38px;font-weight:800;letter-spacing:1.5px;line-height:1;text-transform:uppercase}
 .ps{color:var(--muted);font-size:13px;margin-top:5px;font-weight:500}
@@ -47,10 +50,11 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
 .icon-btn.danger:hover{border-color:var(--danger);color:var(--danger)}
 .fbtn{background:none;border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;font-family:var(--fb);transition:all .15s}
 .fbtn:hover{border-color:var(--accent);color:var(--accent)}
-.av{width:48px;height:48px;border-radius:50%;background:rgba(200,168,75,0.1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:18px;font-weight:800;color:var(--accent);flex-shrink:0}
+.av{width:48px;height:48px;border-radius:50%;background:rgba(200,168,75,0.1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:18px;font-weight:800;color:var(--accent);flex-shrink:0;overflow:hidden}
+.av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .moverlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
 .moverlay.open{opacity:1;pointer-events:auto}
-.mbox{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.mbox{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto}
 .mt2{font-family:var(--fd);font-size:26px;font-weight:800;margin-bottom:16px;letter-spacing:1px;text-transform:uppercase}
 .macts{display:flex;gap:10px;margin-top:20px}
 .bsec{flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:var(--fb);font-size:14px;font-weight:600;cursor:pointer;background:none;color:var(--text)}
@@ -67,6 +71,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
 .loading-overlay .spinner{width:32px;height:32px;margin:0 auto;display:block}
 .subbtn{width:100%;background:var(--accent);color:#000;border:none;border-radius:8px;padding:13px;font-family:var(--fd);font-size:20px;font-weight:800;letter-spacing:1.5px;cursor:pointer;margin-top:4px;transition:all .15s}
 .subbtn:hover{background:#E0C060}
+.logo-preview{width:48px;height:48px;border-radius:8px;object-fit:cover;border:1px solid var(--border);display:none}
 @media(max-width:600px){
   .wrap{padding:12px 10px}
   .pt{font-size:26px}
@@ -84,16 +89,18 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
     <a class="nb" href="index.html" style="text-decoration:none">← Back to League</a>
     <span class="nb active" style="cursor:default">Admin</span>
   </div>
+  <div id="nav-user" style="margin-left:auto;font-size:13px;color:var(--muted)"></div>
 </nav>
 
-<!-- LOCK SCREEN -->
+<!-- AUTH / LOADING SCREEN -->
 <div id="admin-lock" class="admin-lock">
   <div class="admin-lock-box">
     <div class="pt">Admin Panel</div>
-    <div class="ps">Enter password to manage teams and matches</div>
-    <input type="password" id="admin-pw" placeholder="Password" style="margin-bottom:14px" onkeydown="if(event.key==='Enter')unlock()">
-    <button class="subbtn" onclick="unlock()">UNLOCK</button>
-    <div id="lock-err" style="color:var(--danger);font-size:13px;margin-top:10px;font-weight:600"></div>
+    <div class="ps" id="lock-msg">Sign in with your admin Google account to continue.</div>
+    <button class="btn-google" id="lock-google-btn" onclick="adminSignInGoogle()">
+      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+      Sign in with Google
+    </button>
   </div>
 </div>
 
@@ -105,7 +112,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
     <div class="ps">Manage teams, matches, and league settings</div>
   </div>
 
-  <!-- ADD TEAM -->
+  <!-- TEAMS -->
   <div class="admin-section">
     <div class="admin-section-hdr" style="display:flex;align-items:center;justify-content:space-between">
       <span>Teams</span>
@@ -131,6 +138,18 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
       <button class="icon-btn danger" onclick="resetSeason()">Reset Season</button>
     </div>
   </div>
+
+  <!-- ADMIN ACCOUNTS -->
+  <div class="admin-section">
+    <div class="admin-section-hdr">Admin Accounts</div>
+    <div id="admins-list"><div class="loading-overlay"><div class="spinner"></div></div></div>
+    <div class="admin-row">
+      <div class="fg" style="flex:1">
+        <input type="email" id="new-admin-email" placeholder="Add admin by email" style="margin:0">
+      </div>
+      <button class="icon-btn" onclick="addAdmin()" style="margin-top:0">Add Admin</button>
+    </div>
+  </div>
 </div>
 </div>
 
@@ -143,7 +162,23 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
       <div class="fg"><label>Founded Year</label><input type="number" id="t-founded" placeholder="2024"></div>
     </div>
     <div class="fg" style="margin-bottom:16px"><label>Home Pitch / Location</label><input type="text" id="t-pitch" placeholder="Park, arena, etc."></div>
-    <div class="fg" style="margin-bottom:16px"><label>Team Color (hex)</label><input type="text" id="t-color" placeholder="#C8A84B"></div>
+    <div class="fr">
+      <div class="fg"><label>Team Color (hex)</label><input type="text" id="t-color" placeholder="#C8A84B"></div>
+      <div class="fg"><label>Team Owner</label>
+        <select id="t-owner"><option value="">— Select owner —</option></select>
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:16px">
+      <label>Website</label>
+      <input type="url" id="t-website" placeholder="https://yourteam.com">
+    </div>
+    <div class="fg" style="margin-bottom:16px">
+      <label>Logo Image URL</label>
+      <div style="display:flex;gap:10px;align-items:center">
+        <input type="url" id="t-logo" placeholder="https://..." oninput="previewLogo()">
+        <img id="t-logo-preview" class="logo-preview" src="" alt="logo">
+      </div>
+    </div>
     <div class="fr">
       <div class="fg"><label>Season Rating</label><input type="number" id="t-rating" step="0.001" placeholder="5.000"></div>
       <div class="fg"><label>Lifetime Rating</label><input type="number" id="t-lifetimeRating" step="0.001" placeholder="5.000"></div>
@@ -160,7 +195,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
 <div class="moverlay" id="modal-match-del" onclick="closeModal('modal-match-del',event)">
   <div class="mbox" style="max-width:400px">
     <div class="mt2">Delete Match?</div>
-    <p style="color:var(--muted);font-size:14px;margin-bottom:4px">This will remove the match record. <strong style="color:var(--danger)">Rating changes are NOT automatically reversed.</strong> Use "Recalculate Ratings" after deletion if needed.</p>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:4px">This will remove the match record. <strong style="color:var(--danger)">Rating changes are NOT automatically reversed.</strong></p>
     <div class="macts">
       <button class="bsec" onclick="closeModal('modal-match-del')">Cancel</button>
       <button class="bdanger" onclick="confirmDeleteMatch()">Delete Match</button>
@@ -172,12 +207,13 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, writeBatch, getDocs }
+import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc,
+         onSnapshot, writeBatch, getDocs, getDoc, setDoc, query, where }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signOut as fbSignOut,
+         GoogleAuthProvider, signInWithPopup }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-// ── REPLACE WITH YOUR FIREBASE CONFIG ────────────────────────────────────────
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyCSYAz6tnIOxG9MMkOUoDtMSRMFdkpT6KQ",
   authDomain: "quadball-1596e.firebaseapp.com",
@@ -187,35 +223,160 @@ const firebaseConfig = {
   appId: "1:385141631326:web:cf0ba334d8af6027de47cf",
   measurementId: "G-SJ8E8BB1TS"
 };
-// ─────────────────────────────────────────────────────────────────────────────
 
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
-const ADMIN_PASS = 'changeme'; // Change this!
-const RAW_CENTER = 5;
+const SUPER_ADMIN = 'matthew.r.fiebig@gmail.com';
+const RAW_CENTER  = 5;
+
+const app  = initializeApp(firebaseConfig);
+const db   = getFirestore(app);
+const auth = getAuth(app);
+const gProvider = new GoogleAuthProvider();
 
 function initials(n){ return (n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,3); }
 function toDisp(r){ return parseFloat(r||RAW_CENTER).toFixed(3); }
-
 function toast(msg,err){
   const t=document.getElementById('toast');
   t.textContent=msg; t.className='toast'+(err?' err':'')+' show';
   setTimeout(()=>t.className='toast',5000);
 }
 
-let teams=[], matches=[], _unlocked=false;
+let teams=[], matches=[], users=[], admins=[], currentUser=null;
 
-window.unlock=function(){
-  const pw=document.getElementById('admin-pw').value;
-  if(pw===ADMIN_PASS){
-    document.getElementById('admin-lock').style.display='none';
-    document.getElementById('admin-content').style.display='';
-    _unlocked=true;
-  } else {
-    document.getElementById('lock-err').textContent='Incorrect password.';
-  }
+// ── Auth ──────────────────────────────────────────────────────────────────────
+window.adminSignInGoogle=async function(){
+  try{ await signInWithPopup(auth,gProvider); }
+  catch(e){ toast(e.message,true); }
 };
 
+onAuthStateChanged(auth, async user=>{
+  currentUser=user;
+  if(!user){
+    showLock('Sign in with your admin Google account to continue.');
+    return;
+  }
+  // Check admin access
+  const isSuper=user.email===SUPER_ADMIN;
+  let isAdmin=isSuper;
+  if(!isAdmin){
+    try{
+      const snap=await getDoc(doc(db,'settings','admins'));
+      const list=snap.exists()?(snap.data().emails||[]):[];
+      isAdmin=list.includes(user.email);
+    } catch(e){}
+  }
+  if(!isAdmin){
+    showLock(`Access denied. ${user.email} is not an admin. `,'show-signout');
+    return;
+  }
+
+  // Ensure super admin is always in the admins doc
+  if(isSuper){ await ensureSuperAdmin(); }
+
+  document.getElementById('admin-lock').style.display='none';
+  document.getElementById('admin-content').style.display='';
+  document.getElementById('nav-user').textContent=user.email+(isSuper?' ★':'');
+
+  // Load users for owner dropdown
+  loadUsers();
+  loadAdmins();
+});
+
+function showLock(msg,showSignout){
+  document.getElementById('admin-content').style.display='none';
+  document.getElementById('admin-lock').style.display='flex';
+  document.getElementById('lock-msg').textContent=msg;
+  const btn=document.getElementById('lock-google-btn');
+  if(showSignout){
+    btn.textContent='Sign out & try another account';
+    btn.onclick=async()=>{ await fbSignOut(auth); };
+  } else {
+    btn.innerHTML=`<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Sign in with Google`;
+    btn.onclick=window.adminSignInGoogle;
+  }
+}
+
+async function ensureSuperAdmin(){
+  try{
+    const ref=doc(db,'settings','admins');
+    const snap=await getDoc(ref);
+    if(!snap.exists()){
+      await setDoc(ref,{emails:[SUPER_ADMIN]});
+    } else {
+      const list=snap.data().emails||[];
+      if(!list.includes(SUPER_ADMIN)){
+        await updateDoc(ref,{emails:[...list,SUPER_ADMIN]});
+      }
+    }
+  } catch(e){ console.warn('Could not ensure super admin',e); }
+}
+
+// ── Users list for owner dropdown ─────────────────────────────────────────────
+async function loadUsers(){
+  try{
+    const snap=await getDocs(collection(db,'users'));
+    users=snap.docs.map(d=>({id:d.id,...d.data()}));
+  } catch(e){ users=[]; }
+}
+
+function populateOwnerDropdown(selectedUid=''){
+  const sel=document.getElementById('t-owner');
+  sel.innerHTML='<option value="">— Select owner —</option>';
+  users.forEach(u=>{
+    const name=u.displayName||u.email||u.id;
+    const opt=document.createElement('option');
+    opt.value=u.id; opt.textContent=name;
+    if(u.id===selectedUid) opt.selected=true;
+    sel.appendChild(opt);
+  });
+}
+
+// ── Admin management ──────────────────────────────────────────────────────────
+async function loadAdmins(){
+  try{
+    const snap=await getDoc(doc(db,'settings','admins'));
+    admins=snap.exists()?(snap.data().emails||[SUPER_ADMIN]):[SUPER_ADMIN];
+  } catch(e){ admins=[SUPER_ADMIN]; }
+  renderAdmins();
+}
+
+function renderAdmins(){
+  const el=document.getElementById('admins-list'); if(!el) return;
+  el.innerHTML=admins.map(email=>`
+    <div class="admin-row">
+      <div class="admin-row-info">
+        <strong>${email}</strong>
+        <span>${email===SUPER_ADMIN?'Super admin (permanent)':'Admin'}</span>
+      </div>
+      ${email!==SUPER_ADMIN?`<button class="icon-btn danger" onclick="removeAdmin('${email}')">Remove</button>`:''}
+    </div>`).join('');
+}
+
+window.addAdmin=async function(){
+  const email=document.getElementById('new-admin-email').value.trim().toLowerCase();
+  if(!email){ toast('Enter an email',true); return; }
+  if(admins.includes(email)){ toast('Already an admin',true); return; }
+  const newList=[...admins,email];
+  try{
+    await setDoc(doc(db,'settings','admins'),{emails:newList});
+    admins=newList; renderAdmins();
+    document.getElementById('new-admin-email').value='';
+    toast('Admin added!');
+  } catch(e){ toast('Error: '+e.message,true); }
+};
+
+window.removeAdmin=async function(email){
+  if(email===SUPER_ADMIN){ toast('Cannot remove super admin',true); return; }
+  if(admins.length<=1){ toast('Must keep at least one admin',true); return; }
+  if(!confirm(`Remove ${email} as admin?`)) return;
+  const newList=admins.filter(e=>e!==email);
+  try{
+    await setDoc(doc(db,'settings','admins'),{emails:newList});
+    admins=newList; renderAdmins();
+    toast('Admin removed');
+  } catch(e){ toast('Error: '+e.message,true); }
+};
+
+// ── Realtime listeners ────────────────────────────────────────────────────────
 onSnapshot(collection(db,'teams'), snap=>{
   teams=snap.docs.map(d=>({id:d.id,...d.data()}));
   teams.sort((a,b)=>a.name.localeCompare(b.name));
@@ -228,15 +389,14 @@ onSnapshot(collection(db,'matches'), snap=>{
 });
 
 function renderTeams(){
-  const el=document.getElementById('teams-list');
-  if(!el) return;
+  const el=document.getElementById('teams-list'); if(!el) return;
   if(!teams.length){ el.innerHTML=`<div class="es">No teams yet. Add one above.</div>`; return; }
   el.innerHTML=teams.map(t=>`
     <div class="admin-row">
-      <div class="av">${initials(t.name)}</div>
+      <div class="av">${t.logoUrl?`<img src="${t.logoUrl}" alt="">`:initials(t.name)}</div>
       <div class="admin-row-info">
         <strong>${t.name}</strong>
-        <span>Season: ${toDisp(t.rating)} · Lifetime: ${toDisp(t.lifetimeRating||t.rating)} · W${t.wins||0}/L${t.losses||0} · ${t.seasonGames||0} GP</span>
+        <span>Season: ${toDisp(t.rating)} · Lifetime: ${toDisp(t.lifetimeRating||t.rating)} · W${t.wins||0}/L${t.losses||0} · ${t.seasonGames||0} GP${t.ownerUid?' · Owner set':''}</span>
       </div>
       <button class="icon-btn" onclick="openEditTeam('${t.id}')">Edit</button>
       <button class="icon-btn danger" onclick="confirmDeleteTeamById('${t.id}')">Delete</button>
@@ -244,8 +404,7 @@ function renderTeams(){
 }
 
 function renderMatches(){
-  const el=document.getElementById('matches-list');
-  if(!el) return;
+  const el=document.getElementById('matches-list'); if(!el) return;
   const recent=matches.slice(0,30);
   if(!recent.length){ el.innerHTML=`<div class="es">No matches yet.</div>`; return; }
   el.innerHTML=recent.map(m=>{
@@ -261,13 +420,23 @@ function renderMatches(){
   }).join('');
 }
 
+// ── Logo preview ──────────────────────────────────────────────────────────────
+window.previewLogo=function(){
+  const url=document.getElementById('t-logo').value.trim();
+  const img=document.getElementById('t-logo-preview');
+  if(url){ img.src=url; img.style.display='block'; }
+  else { img.style.display='none'; }
+};
+
 // ── Team CRUD ─────────────────────────────────────────────────────────────────
 let _editingTeamId=null;
 window.openAddTeam=function(){
   _editingTeamId=null;
   document.getElementById('modal-team-title').textContent='Add Team';
-  ['t-name','t-founded','t-pitch','t-color','t-rating','t-lifetimeRating'].forEach(id=>document.getElementById(id).value='');
+  ['t-name','t-founded','t-pitch','t-color','t-rating','t-lifetimeRating','t-website','t-logo'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('t-logo-preview').style.display='none';
   document.getElementById('t-delete-btn').style.display='none';
+  populateOwnerDropdown();
   openModal('modal-team');
 };
 window.openEditTeam=function(id){
@@ -280,7 +449,13 @@ window.openEditTeam=function(id){
   document.getElementById('t-color').value=t.color||'';
   document.getElementById('t-rating').value=t.rating!=null?t.rating:'';
   document.getElementById('t-lifetimeRating').value=t.lifetimeRating!=null?t.lifetimeRating:'';
+  document.getElementById('t-website').value=t.website||'';
+  document.getElementById('t-logo').value=t.logoUrl||'';
+  const img=document.getElementById('t-logo-preview');
+  if(t.logoUrl){ img.src=t.logoUrl; img.style.display='block'; }
+  else { img.style.display='none'; }
   document.getElementById('t-delete-btn').style.display='';
+  populateOwnerDropdown(t.ownerUid||'');
   openModal('modal-team');
 };
 window.saveTeam=async function(){
@@ -293,6 +468,9 @@ window.saveTeam=async function(){
     founded:document.getElementById('t-founded').value||null,
     pitch:document.getElementById('t-pitch').value||null,
     color:document.getElementById('t-color').value||null,
+    website:document.getElementById('t-website').value||null,
+    logoUrl:document.getElementById('t-logo').value||null,
+    ownerUid:document.getElementById('t-owner').value||null,
     rating:rInput!==''?parseFloat(rInput):RAW_CENTER,
     lifetimeRating:lrInput!==''?parseFloat(lrInput):RAW_CENTER,
   };

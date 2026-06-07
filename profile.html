@@ -25,6 +25,7 @@ nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;d
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);padding:28px;margin-bottom:16px}
 .fg{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
 .fg label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 input[type=text],input[type=email],input[type=password]{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:8px;font-family:var(--fb);font-size:14px;color:var(--text);background:var(--bg3);outline:none;transition:border-color .15s}
 input:focus{border-color:var(--accent)}
 .btn{width:100%;padding:13px;border:none;border-radius:8px;font-family:var(--fd);font-size:20px;font-weight:800;letter-spacing:1.5px;cursor:pointer;transition:all .15s;margin-bottom:10px}
@@ -34,16 +35,34 @@ input:focus{border-color:var(--accent)}
 .btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
 .btn-danger{background:none;border:1px solid var(--danger);color:var(--danger);font-size:15px;letter-spacing:.5px}
 .btn-danger:hover{background:var(--danger);color:#fff}
+.btn-google{background:#fff;color:#222;border:none;border-radius:8px;width:100%;padding:12px;font-family:var(--fb);font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;transition:all .15s}
+.btn-google:hover{background:#f0f0f0}
+.btn-google svg{flex-shrink:0}
 .tab-row{display:flex;gap:4px;margin-bottom:20px}
 .tab{flex:1;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:var(--fb);font-size:14px;font-weight:600;cursor:pointer;background:none;color:var(--muted);transition:all .15s;text-align:center}
 .tab.active{background:rgba(200,168,75,0.1);border-color:var(--accent);color:var(--accent)}
 .av-lg{width:72px;height:72px;border-radius:50%;background:rgba(200,168,75,0.1);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:28px;font-weight:800;color:var(--accent);margin:0 auto 16px}
+.divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+/* Multi-select team chips */
+.team-select-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;min-height:48px;cursor:pointer;transition:border-color .15s}
+.team-select-wrap:focus-within,.team-select-wrap.open{border-color:var(--accent)}
+.team-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.chip{background:rgba(200,168,75,0.15);border:1px solid rgba(200,168,75,0.3);border-radius:20px;padding:3px 10px 3px 12px;font-size:13px;color:var(--accent);display:flex;align-items:center;gap:6px}
+.chip-x{cursor:pointer;opacity:.6;font-size:16px;line-height:1}
+.chip-x:hover{opacity:1}
+.team-dropdown{background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-top:6px;overflow:hidden;display:none;max-height:200px;overflow-y:auto}
+.team-dropdown.open{display:block}
+.team-opt{padding:10px 14px;font-size:14px;cursor:pointer;transition:background .1s}
+.team-opt:hover{background:rgba(255,255,255,0.05)}
+.team-opt.selected{color:var(--accent)}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--success);color:#fff;padding:14px 22px;border-radius:10px;font-weight:700;font-size:14px;transform:translateY(80px);opacity:0;transition:all .3s ease;z-index:9999;pointer-events:none}
 .toast.show{transform:translateY(0);opacity:1}
 .toast.err{background:var(--danger)}
 .spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
 @keyframes spin{to{transform:rotate(360deg)}}
 #auth-loading{text-align:center;padding:60px 20px;color:var(--muted)}
+@media(max-width:500px){.fr{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -61,6 +80,15 @@ input:focus{border-color:var(--accent)}
   <div id="auth-panel" style="display:none">
     <div class="pt">My Profile</div>
     <div class="ps">Sign in to track your team's history</div>
+
+    <!-- Google Sign In (top) -->
+    <button class="btn-google" onclick="signInGoogle()">
+      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+      Continue with Google
+    </button>
+
+    <div class="divider">or use email</div>
+
     <div class="tab-row">
       <button class="tab active" id="tab-signin" onclick="switchTab('signin')">Sign In</button>
       <button class="tab" id="tab-register" onclick="switchTab('register')">Register</button>
@@ -96,8 +124,18 @@ input:focus{border-color:var(--accent)}
 
     <div class="card">
       <div style="font-family:var(--fd);font-size:18px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;color:var(--accent)">Edit Profile</div>
-      <div class="fg"><label>Display Name</label><input type="text" id="edit-name" placeholder="Your name"></div>
-      <div class="fg"><label>Team (optional)</label><input type="text" id="edit-team" placeholder="Your team name"></div>
+      <div class="fr">
+        <div class="fg"><label>First Name</label><input type="text" id="edit-first" placeholder="First"></div>
+        <div class="fg"><label>Last Name</label><input type="text" id="edit-last" placeholder="Last"></div>
+      </div>
+      <div class="fg">
+        <label>Followed Teams</label>
+        <div class="team-select-wrap" id="team-select-wrap">
+          <div class="team-chips" id="team-chips"></div>
+          <div style="font-size:13px;color:var(--muted);cursor:pointer" onclick="toggleTeamDropdown()">Click to select teams…</div>
+        </div>
+        <div class="team-dropdown" id="team-dropdown"></div>
+      </div>
       <button class="btn btn-primary" onclick="saveProfile()">SAVE CHANGES</button>
     </div>
 
@@ -111,15 +149,14 @@ input:focus{border-color:var(--accent)}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc }
+import { getFirestore, doc, getDoc, collection, getDocs, setDoc, updateDoc }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword,
-         createUserWithEmailAndPassword, sendPasswordResetEmail, signOut as fbSignOut, updateProfile }
+         createUserWithEmailAndPassword, sendPasswordResetEmail,
+         signOut as fbSignOut, updateProfile,
+         GoogleAuthProvider, signInWithPopup }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-// ── REPLACE WITH YOUR FIREBASE CONFIG ────────────────────────────────────────
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyCSYAz6tnIOxG9MMkOUoDtMSRMFdkpT6KQ",
   authDomain: "quadball-1596e.firebaseapp.com",
@@ -129,11 +166,11 @@ const firebaseConfig = {
   appId: "1:385141631326:web:cf0ba334d8af6027de47cf",
   measurementId: "G-SJ8E8BB1TS"
 };
-// ─────────────────────────────────────────────────────────────────────────────
 
 const app  = initializeApp(firebaseConfig);
 const db   = getFirestore(app);
 const auth = getAuth(app);
+const gProvider = new GoogleAuthProvider();
 
 function initials(n){ return (n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
 function toast(msg,err){
@@ -142,8 +179,53 @@ function toast(msg,err){
   setTimeout(()=>t.className='toast',5000);
 }
 
-let currentUser=null, userProfile=null;
+let currentUser=null, userProfile=null, allTeams=[], selectedTeams=new Set();
 
+// ── Team multi-select ─────────────────────────────────────────────────────────
+async function loadTeams(){
+  try{
+    const snap=await getDocs(collection(db,'teams'));
+    allTeams=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.name.localeCompare(b.name));
+    renderTeamDropdown();
+  } catch(e){ console.warn('Could not load teams',e); }
+}
+
+function renderTeamDropdown(){
+  const dd=document.getElementById('team-dropdown');
+  dd.innerHTML=allTeams.map(t=>`
+    <div class="team-opt${selectedTeams.has(t.id)?' selected':''}" onclick="toggleTeam('${t.id}','${t.name.replace(/'/g,"\\'")}')">
+      ${selectedTeams.has(t.id)?'✓ ':''}${t.name}
+    </div>`).join('');
+}
+
+function renderTeamChips(){
+  const chips=document.getElementById('team-chips');
+  chips.innerHTML=[...selectedTeams].map(id=>{
+    const t=allTeams.find(x=>x.id===id); if(!t) return '';
+    return `<span class="chip">${t.name}<span class="chip-x" onclick="toggleTeam('${t.id}','')">×</span></span>`;
+  }).join('');
+}
+
+window.toggleTeam=function(id,name){
+  if(selectedTeams.has(id)) selectedTeams.delete(id);
+  else selectedTeams.add(id);
+  renderTeamChips();
+  renderTeamDropdown();
+};
+
+window.toggleTeamDropdown=function(){
+  document.getElementById('team-dropdown').classList.toggle('open');
+};
+
+// Close dropdown on outside click
+document.addEventListener('click',e=>{
+  if(!document.getElementById('team-select-wrap').contains(e.target)&&
+     !document.getElementById('team-dropdown').contains(e.target)){
+    document.getElementById('team-dropdown').classList.remove('open');
+  }
+});
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
 onAuthStateChanged(auth, async user=>{
   document.getElementById('auth-loading').style.display='none';
   currentUser=user;
@@ -152,22 +234,31 @@ onAuthStateChanged(auth, async user=>{
       const snap=await getDoc(doc(db,'users',user.uid));
       userProfile=snap.exists()?snap.data():null;
     } catch(e){ userProfile=null; }
+    await loadTeams();
     showProfile(user);
   } else {
     document.getElementById('auth-panel').style.display='';
     document.getElementById('profile-panel').style.display='none';
+    loadTeams(); // still load for display
   }
 });
 
 function showProfile(user){
   document.getElementById('auth-panel').style.display='none';
   document.getElementById('profile-panel').style.display='';
-  const name=userProfile?.displayName||user.displayName||user.email.split('@')[0];
-  document.getElementById('profile-av').textContent=initials(name);
-  document.getElementById('profile-name').textContent=name;
+  const firstName=userProfile?.firstName||'';
+  const lastName=userProfile?.lastName||'';
+  const displayName=firstName&&lastName?`${firstName} ${lastName}`:(firstName||lastName||user.displayName||user.email.split('@')[0]);
+  document.getElementById('profile-av').textContent=initials(displayName);
+  document.getElementById('profile-name').textContent=displayName;
   document.getElementById('profile-email').textContent=user.email;
-  document.getElementById('edit-name').value=name;
-  document.getElementById('edit-team').value=userProfile?.teamName||'';
+  document.getElementById('edit-first').value=firstName;
+  document.getElementById('edit-last').value=lastName;
+
+  // Restore followed teams
+  selectedTeams=new Set(userProfile?.followedTeams||[]);
+  renderTeamChips();
+  renderTeamDropdown();
 }
 
 window.switchTab=function(tab){
@@ -175,6 +266,11 @@ window.switchTab=function(tab){
   document.getElementById('tab-register').classList.toggle('active',tab==='register');
   document.getElementById('panel-signin').style.display=tab==='signin'?'':'none';
   document.getElementById('panel-register').style.display=tab==='register'?'':'none';
+};
+
+window.signInGoogle=async function(){
+  try{ await signInWithPopup(auth,gProvider); toast('Signed in!'); }
+  catch(e){ toast(e.message,true); }
 };
 
 window.signIn=async function(){
@@ -194,19 +290,24 @@ window.register=async function(){
   if(pass.length<6){ toast('Password must be at least 6 characters',true); return; }
   try{
     const cred=await createUserWithEmailAndPassword(auth,email,pass);
-    await setDoc(doc(db,'users',cred.user.uid),{email,displayName:'',teamName:'',createdAt:Date.now()});
+    await setDoc(doc(db,'users',cred.user.uid),{email,firstName:'',lastName:'',followedTeams:[],createdAt:Date.now()});
     toast('Account created!');
   } catch(e){ toast(e.message,true); }
 };
 
 window.saveProfile=async function(){
   if(!currentUser) return;
-  const name=document.getElementById('edit-name').value.trim();
-  const team=document.getElementById('edit-team').value.trim();
+  const firstName=document.getElementById('edit-first').value.trim();
+  const lastName=document.getElementById('edit-last').value.trim();
+  const followedTeams=[...selectedTeams];
+  const displayName=[firstName,lastName].filter(Boolean).join(' ');
   try{
-    await updateDoc(doc(db,'users',currentUser.uid),{displayName:name,teamName:team});
-    if(name) await updateProfile(currentUser,{displayName:name});
-    userProfile={...userProfile,displayName:name,teamName:team};
+    const ref=doc(db,'users',currentUser.uid);
+    const snap=await getDoc(ref);
+    if(snap.exists()) await updateDoc(ref,{firstName,lastName,followedTeams});
+    else await setDoc(ref,{email:currentUser.email,firstName,lastName,followedTeams,createdAt:Date.now()});
+    if(displayName) await updateProfile(currentUser,{displayName});
+    userProfile={...userProfile,firstName,lastName,followedTeams};
     showProfile(currentUser);
     toast('Profile saved!');
   } catch(e){ toast(e.message,true); }
