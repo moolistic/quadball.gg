@@ -92,6 +92,11 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
 .loading-overlay{text-align:center;padding:60px 20px;color:var(--muted)}
 .loading-overlay .spinner{width:32px;height:32px;margin:0 auto;display:block}
 .logo-preview{width:48px;height:48px;border-radius:8px;object-fit:cover;border:1px solid var(--border);display:none}
+/* League filter pills */
+.league-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.lp{background:none;border:1.5px solid var(--border);border-radius:20px;padding:5px 16px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;font-family:var(--fb);transition:all .15s;letter-spacing:.3px}
+.lp:hover{border-color:var(--accent);color:var(--accent)}
+.lp.active{background:rgba(200,168,75,0.12);border-color:var(--accent);color:var(--accent)}
 /* Score edit inline */
 .score-edit{display:flex;align-items:center;gap:6px}
 .score-edit input{width:58px;padding:6px 8px;text-align:center;font-weight:700;font-size:14px}
@@ -148,6 +153,13 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
 
   <!-- ═══ TAB: TEAMS ═══ -->
   <div id="tab-teams" class="tab-pane active">
+    <div class="league-pills">
+      <button class="lp active" onclick="setTeamLeagueFilter('all',this)">All</button>
+      <button class="lp" onclick="setTeamLeagueFilter('MLQ',this)">MLQ</button>
+      <button class="lp" onclick="setTeamLeagueFilter('Club',this)">Club</button>
+      <button class="lp" onclick="setTeamLeagueFilter('College',this)">College</button>
+      <button class="lp" onclick="setTeamLeagueFilter('archived',this)">Archived</button>
+    </div>
     <div class="admin-section">
       <div class="admin-section-hdr">
         <span>Teams</span>
@@ -159,6 +171,12 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
 
   <!-- ═══ TAB: MATCHES ═══ -->
   <div id="tab-matches" class="tab-pane">
+    <div class="league-pills">
+      <button class="lp active" onclick="setMatchLeagueFilter('all',this)">All Leagues</button>
+      <button class="lp" onclick="setMatchLeagueFilter('MLQ',this)">MLQ</button>
+      <button class="lp" onclick="setMatchLeagueFilter('Club',this)">Club</button>
+      <button class="lp" onclick="setMatchLeagueFilter('College',this)">College</button>
+    </div>
     <div class="filter-bar">
       <input type="text" id="match-search" placeholder="🔍  Search team name…" oninput="filterMatches()">
       <select id="match-filter-team" onchange="filterMatches()">
@@ -207,6 +225,32 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
           <span>Resets all team season ratings to 5.000 and clears season W/L/GP. Lifetime stats are preserved.</span>
         </div>
         <button class="icon-btn danger" onclick="resetSeason()">Reset Season</button>
+      </div>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-hdr">Rating Recalculation</div>
+      <div class="admin-row" style="flex-direction:column;align-items:flex-start;gap:12px">
+        <div class="admin-row-info">
+          <strong>Archive Cutoff Date</strong>
+          <span>Matches on or before this date are treated as locked — recalculation starts from the day after. Set this to the end of a previous season to lock it in stone and avoid replaying history.</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;width:100%;flex-wrap:wrap">
+          <div style="flex:1;min-width:180px">
+            <input type="date" id="cutoff-date" style="margin:0">
+          </div>
+          <button class="icon-btn" onclick="saveCutoffDate()">Save Cutoff</button>
+        </div>
+        <div id="cutoff-status" style="font-size:12px;color:var(--muted)"></div>
+      </div>
+      <div class="admin-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+        <div class="admin-row-info">
+          <strong>Recalculate Ratings From Cutoff</strong>
+          <span>Replays all matches after the cutoff date in chronological order and updates every team's season rating. Use after editing a match score.</span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="icon-btn" id="recalc-btn" onclick="recalcRatings()">♻ Recalculate Ratings</button>
+          <span id="recalc-status" style="font-size:12px;color:var(--muted);align-self:center"></span>
+        </div>
       </div>
     </div>
     <div class="admin-section">
@@ -276,7 +320,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
   <div class="mbox" style="max-width:460px">
     <div class="mt2">Edit Match Score</div>
     <div style="color:var(--muted);font-size:13px;margin-bottom:20px">
-      ⚠️ This only updates the stored scores — <strong style="color:var(--danger)">rating deltas are not recalculated.</strong>
+      Editing a score and recalculating will replay all matches from the cutoff date forward.
     </div>
     <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin-bottom:20px">
       <div class="fg">
@@ -292,6 +336,10 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
     <div class="fg" style="margin-bottom:16px">
       <label>Date</label>
       <input type="date" id="em-date">
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:8px;margin-bottom:4px">
+      <input type="checkbox" id="em-recalc" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" checked>
+      <label for="em-recalc" style="font-size:13px;font-weight:600;color:var(--text);cursor:pointer">Recalculate all ratings from cutoff date after saving</label>
     </div>
     <div class="macts">
       <button class="bsec" onclick="closeModal('modal-edit-match')">Cancel</button>
@@ -365,6 +413,21 @@ function toast(msg,err){
 }
 
 let teams=[], matches=[], users=[], admins=[], currentUser=null;
+let teamLeagueFilter='all', matchLeagueFilter='all';
+let cutoffDate=''; // ISO date string YYYY-MM-DD
+
+window.setTeamLeagueFilter=function(league, btn){
+  teamLeagueFilter=league;
+  document.querySelectorAll('#tab-teams .lp').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderTeams();
+};
+window.setMatchLeagueFilter=function(league, btn){
+  matchLeagueFilter=league;
+  document.querySelectorAll('#tab-matches .lp').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  filterMatches();
+};
 
 // ── Tab switching ─────────────────────────────────────────────────────────────
 window.switchTab=function(name){
@@ -407,6 +470,7 @@ if(!isAdmin){
   document.getElementById('nav-user').textContent=user.email+(isSuper?' ★':'');
   loadUsers();
   loadAdmins();
+  loadCutoffDate();
 });
 
 function showLock(msg,mode){
@@ -566,9 +630,35 @@ window.confirmDeleteUser=async function(){
 function renderTeams(){
   const el=document.getElementById('teams-list'); if(!el) return;
   if(!teams.length){ el.innerHTML=`<div class="es">No teams yet.</div>`; return; }
-  const active=teams.filter(t=>!t.archived);
-  const archived=teams.filter(t=>t.archived);
-  let html=active.map(t=>`
+
+  let active=teams.filter(t=>!t.archived);
+  let archived=teams.filter(t=>t.archived);
+
+  if(teamLeagueFilter==='archived'){
+    // show only archived
+    if(!archived.length){ el.innerHTML=`<div class="es">No archived teams.</div>`; return; }
+    el.innerHTML=archived.map(t=>`
+    <div class="admin-row" style="opacity:.6">
+      <div class="av" style="border-color:var(--muted)">${esc(initials(t.name))}</div>
+      <div class="admin-row-info">
+        <strong>${esc(t.name)} <span style="font-size:11px;color:var(--muted);background:rgba(255,255,255,0.05);border-radius:10px;padding:1px 7px">Archived</span></strong>
+        <span>${t.league||'No league'}${t.league?' · ':''}Disbanded</span>
+      </div>
+      <button class="icon-btn" onclick="unarchiveTeamById('${t.id}')">Restore</button>
+      <button class="icon-btn danger" onclick="confirmDeleteTeamById('${t.id}')">Delete</button>
+    </div>`).join('');
+    return;
+  }
+
+  if(teamLeagueFilter!=='all'){
+    active=active.filter(t=>(t.league||'')===(teamLeagueFilter));
+  }
+
+  let html='';
+  if(!active.length){
+    html=`<div class="es">No teams in this league.</div>`;
+  } else {
+    html=active.map(t=>`
     <div class="admin-row">
       <div class="av">${t.logoUrl?`<img src="${esc(t.logoUrl)}" alt="">`:esc(initials(t.name))}</div>
       <div class="admin-row-info">
@@ -577,18 +667,6 @@ function renderTeams(){
       </div>
       <button class="icon-btn" onclick="openEditTeam('${t.id}')">Edit</button>
       <button class="icon-btn danger" style="border-color:rgba(226,75,75,0.3)" onclick="archiveTeamById('${t.id}')">Archive</button>
-      <button class="icon-btn danger" onclick="confirmDeleteTeamById('${t.id}')">Delete</button>
-    </div>`).join('');
-  if(archived.length){
-    html+=`<div style="padding:10px 20px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;border-top:1px solid var(--border);margin-top:4px">Archived Teams</div>`;
-    html+=archived.map(t=>`
-    <div class="admin-row" style="opacity:.6">
-      <div class="av" style="border-color:var(--muted)">${esc(initials(t.name))}</div>
-      <div class="admin-row-info">
-        <strong>${esc(t.name)} <span style="font-size:11px;color:var(--muted);background:rgba(255,255,255,0.05);border-radius:10px;padding:1px 7px">Archived</span></strong>
-        <span>${t.league||''}${t.league?' · ':''}Disbanded</span>
-      </div>
-      <button class="icon-btn" onclick="unarchiveTeamById('${t.id}')">Restore</button>
       <button class="icon-btn danger" onclick="confirmDeleteTeamById('${t.id}')">Delete</button>
     </div>`).join('');
   }
@@ -628,7 +706,8 @@ window.filterMatches=function(){
     const matchSearch=!search||names.includes(search);
     const matchTeam=!teamId||(m.winner===teamId||m.loser===teamId);
     const matchYear=!year||((m.date||'').startsWith(year));
-    return matchSearch&&matchTeam&&matchYear;
+    const matchLeague=matchLeagueFilter==='all'||(m.league||'')===(matchLeagueFilter);
+    return matchSearch&&matchTeam&&matchYear&&matchLeague;
   });
 
   const count=document.getElementById('match-result-count');
@@ -670,11 +749,15 @@ window.saveEditedMatch=async function(){
   const scoreW=parseInt(document.getElementById('em-score-a').value);
   const scoreL=parseInt(document.getElementById('em-score-b').value);
   const date=document.getElementById('em-date').value;
+  const doRecalc=document.getElementById('em-recalc')?.checked;
   if(isNaN(scoreW)||isNaN(scoreL)){ toast('Enter valid scores',true); return; }
   if(scoreW<scoreL){ toast('Winner score must be ≥ loser score',true); return; }
   try{
     await updateDoc(doc(db,'matches',_editMatchId),{scoreW,scoreL,...(date?{date}:{})});
-    closeModal('modal-edit-match'); toast('Score updated!'); _editMatchId=null;
+    closeModal('modal-edit-match');
+    toast('Score updated!');
+    if(doRecalc){ setTimeout(()=>recalcRatings(),400); }
+    _editMatchId=null;
   }catch(e){ toast('Error: '+e.message,true); }
 };
 
@@ -853,6 +936,176 @@ window.previewLogo=function(){
   const url=document.getElementById('t-logo').value.trim();
   const img=document.getElementById('t-logo-preview');
   if(url){ img.src=url; img.style.display='block'; } else { img.style.display='none'; }
+};
+
+// ── Cutoff Date ───────────────────────────────────────────────────────────────
+async function loadCutoffDate(){
+  try{
+    const snap=await getDoc(doc(db,'settings','recalc'));
+    if(snap.exists()&&snap.data().cutoffDate){
+      cutoffDate=snap.data().cutoffDate;
+      const el=document.getElementById('cutoff-date');
+      if(el) el.value=cutoffDate;
+      const st=document.getElementById('cutoff-status');
+      if(st) st.textContent=`Current cutoff: ${cutoffDate} — matches after this date will be replayed.`;
+    }
+  }catch(e){}
+}
+
+window.saveCutoffDate=async function(){
+  const val=document.getElementById('cutoff-date')?.value;
+  if(!val){ toast('Pick a date',true); return; }
+  try{
+    await setDoc(doc(db,'settings','recalc'),{cutoffDate:val},{merge:true});
+    cutoffDate=val;
+    const st=document.getElementById('cutoff-status');
+    if(st) st.textContent=`Cutoff saved: ${val} — matches after this date will be replayed.`;
+    toast('Cutoff date saved!');
+  }catch(e){ toast('Error: '+e.message,true); }
+};
+
+// ── Rating Recalculation ──────────────────────────────────────────────────────
+const RECALC_RAW_CENTER=5, RECALC_SCALE_MARGIN=12, RECALC_PERF=0.1, RECALC_MAX=170;
+function recalcDelta(r1,r2,s1,s2){
+  const prob=1/(1+Math.pow(10,(r2-r1)/2));
+  const expMargin=Math.min((r1-r2)*RECALC_SCALE_MARGIN,RECALC_MAX*0.15);
+  const mf=0.2*((s1>s2)?(1-prob):(-prob));
+  const mf2=((s1-s2)-expMargin)/RECALC_MAX*RECALC_PERF;
+  return parseFloat((mf+mf2).toFixed(5));
+}
+
+window.recalcRatings=async function(){
+  const btn=document.getElementById('recalc-btn');
+  const st=document.getElementById('recalc-status');
+  if(btn){ btn.disabled=true; btn.textContent='Recalculating…'; }
+  if(st) st.textContent='';
+  try{
+    // Reload current cutoff
+    const cutoffSnap=await getDoc(doc(db,'settings','recalc'));
+    const cd=cutoffSnap.exists()?cutoffSnap.data().cutoffDate||'':cutoffDate;
+
+    // Get all teams' locked ratings as of cutoff — start from each team's current stored values
+    // Build a mutable snapshot of team ratings starting from their locked-in state
+    const teamStates={};
+    teams.forEach(t=>{
+      // If no cutoff, start everyone from RAW_CENTER
+      teamStates[t.id]={
+        rating: cd ? (t.lockedRating??t.rating??RECALC_RAW_CENTER) : RECALC_RAW_CENTER,
+        lifetimeRating: cd ? (t.lockedLifetimeRating??t.lifetimeRating??t.rating??RECALC_RAW_CENTER) : RECALC_RAW_CENTER,
+        wins:0, losses:0, seasonGames:0, lifetimeGames:0, totalPoints:0
+      };
+    });
+
+    // If cutoff set, restore locked stats too
+    if(cd){
+      teams.forEach(t=>{
+        teamStates[t.id].wins=t.lockedWins??0;
+        teamStates[t.id].losses=t.lockedLosses??0;
+        teamStates[t.id].seasonGames=t.lockedSeasonGames??0;
+        teamStates[t.id].lifetimeGames=t.lockedLifetimeGames??0;
+        teamStates[t.id].totalPoints=t.lockedTotalPoints??0;
+      });
+    }
+
+    // Sort matches chronologically, filter to after cutoff
+    const sortedMatches=[...matches].sort((a,b)=>{
+      if(a.timestamp&&b.timestamp) return a.timestamp-b.timestamp;
+      return (a.date||'')<(b.date||'')?-1:1;
+    }).filter(m=> !cd || (m.date&&m.date>cd));
+
+    const newRatingChanges={};
+
+    for(const m of sortedMatches){
+      const wId=m.winner, lId=m.loser;
+      if(!wId||!lId) continue;
+      const ws=teamStates[wId], ls=teamStates[lId];
+      if(!ws||!ls) continue;
+      const scoreW=m.scoreW??0, scoreL=m.scoreL??0;
+      const deltaS=recalcDelta(ws.rating,ls.rating,scoreW,scoreL);
+      const deltaL=recalcDelta(ws.lifetimeRating,ls.lifetimeRating,scoreW,scoreL);
+
+      // Store per-match changes for updating match doc
+      newRatingChanges[m.id]={
+        ratingDelta:Math.abs(deltaS).toFixed(3),
+        ratingChanges:{[wId]:deltaS,[lId]:-deltaS},
+        lifetimeRatingChanges:{[wId]:deltaL,[lId]:-deltaL}
+      };
+
+      ws.rating+=deltaS; ls.rating-=deltaS;
+      ws.lifetimeRating+=deltaL; ls.lifetimeRating-=deltaL;
+      ws.wins++; ls.losses++;
+      ws.seasonGames++; ls.seasonGames++;
+      ws.lifetimeGames++; ls.lifetimeGames++;
+      ws.totalPoints+=scoreW; ls.totalPoints+=scoreL;
+    }
+
+    // Write all team updates in batches of 400 ops
+    const BATCH_LIMIT=400;
+    let ops=[];
+    for(const [tid,state] of Object.entries(teamStates)){
+      ops.push({ref:doc(db,'teams',tid), data:{
+        rating:parseFloat(state.rating.toFixed(5)),
+        lifetimeRating:parseFloat(state.lifetimeRating.toFixed(5)),
+        wins:state.wins, losses:state.losses,
+        seasonGames:state.seasonGames, lifetimeGames:state.lifetimeGames,
+        totalPoints:state.totalPoints,
+        seasonYear:new Date().getFullYear()
+      }});
+    }
+    // Also update match rating deltas
+    for(const [mid,changes] of Object.entries(newRatingChanges)){
+      ops.push({ref:doc(db,'matches',mid), data:changes});
+    }
+
+    while(ops.length){
+      const chunk=ops.splice(0,BATCH_LIMIT);
+      const b=writeBatch(db);
+      chunk.forEach(({ref,data})=>b.update(ref,data));
+      await b.commit();
+    }
+
+    const n=sortedMatches.length;
+    if(st) st.textContent=`Done — replayed ${n} match${n===1?'':'es'}.`;
+    toast(`Ratings recalculated across ${n} match${n===1?'':'es'}!`);
+  }catch(e){
+    toast('Recalc error: '+e.message,true);
+    if(st) st.textContent='Error: '+e.message;
+  }
+  if(btn){ btn.disabled=false; btn.textContent='♻ Recalculate Ratings'; }
+};
+
+// ── Lock current stats as cutoff baseline ─────────────────────────────────────
+// Called automatically when cutoff date is saved — snapshots current stats as the locked baseline
+async function lockStatsAsBaseline(){
+  try{
+    const b=writeBatch(db);
+    teams.forEach(t=>{
+      b.update(doc(db,'teams',t.id),{
+        lockedRating:t.rating??RECALC_RAW_CENTER,
+        lockedLifetimeRating:t.lifetimeRating??t.rating??RECALC_RAW_CENTER,
+        lockedWins:t.wins??0, lockedLosses:t.losses??0,
+        lockedSeasonGames:t.seasonGames??0, lockedLifetimeGames:t.lifetimeGames??0,
+        lockedTotalPoints:t.totalPoints??0
+      });
+    });
+    await b.commit();
+  }catch(e){ console.warn('lockStatsAsBaseline error',e); }
+}
+
+// Override saveCutoffDate to also lock stats
+const _origSave=window.saveCutoffDate;
+window.saveCutoffDate=async function(){
+  const val=document.getElementById('cutoff-date')?.value;
+  if(!val){ toast('Pick a date',true); return; }
+  if(!confirm(`Set cutoff to ${val}? This will snapshot current team stats as the baseline. Recalculation will only replay matches after this date.`)) return;
+  try{
+    await setDoc(doc(db,'settings','recalc'),{cutoffDate:val},{merge:true});
+    cutoffDate=val;
+    await lockStatsAsBaseline();
+    const st=document.getElementById('cutoff-status');
+    if(st) st.textContent=`Cutoff saved: ${val} — stats locked. Recalculate to replay matches after this date.`;
+    toast('Cutoff date saved & stats locked!');
+  }catch(e){ toast('Error: '+e.message,true); }
 };
 
 // ── Season Reset ──────────────────────────────────────────────────────────────

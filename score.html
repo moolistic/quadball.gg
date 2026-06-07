@@ -336,7 +336,7 @@ window.setLeague=function(league){
 };
 
 function getLeagueTeams(excludeId){
-  let list=teams.filter(t=>(t.league||'Club')===currentLeague);
+  let list=teams.filter(t=>!t.archived&&(t.league||'')===currentLeague);
   if(excludeId) list=list.filter(t=>t.id!==excludeId);
   return list;
 }
