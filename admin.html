@@ -92,6 +92,27 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
 .loading-overlay{text-align:center;padding:60px 20px;color:var(--muted)}
 .loading-overlay .spinner{width:32px;height:32px;margin:0 auto;display:block}
 .logo-preview{width:48px;height:48px;border-radius:8px;object-fit:cover;border:1px solid var(--border);display:none}
+/* CSV section */
+.csv-section{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:4px}
+.csv-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.csv-card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.csv-card-desc{font-size:12px;color:var(--muted);line-height:1.5}
+.drop-zone{border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all .15s;font-size:13px;color:var(--muted);font-weight:600}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);color:var(--accent);background:rgba(200,168,75,0.05)}
+.drop-zone input[type=file]{display:none}
+.csv-preview{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-size:11px;color:var(--muted);font-family:monospace;max-height:120px;overflow-y:auto;white-space:pre;display:none}
+.csv-import-results{font-size:12px;margin-top:6px;line-height:1.7}
+.csv-ok{color:var(--success)}.csv-warn{color:var(--accent)}.csv-err{color:var(--danger)}
+@media(max-width:640px){.csv-section{grid-template-columns:1fr}}
+/* Bulk selection */
+.admin-row.selectable{cursor:pointer;padding-left:10px;transition:background .1s}
+.admin-row.selectable:hover{background:rgba(255,255,255,0.03)}
+.admin-row.selected{background:rgba(200,168,75,0.07);border-left:3px solid var(--accent)}
+.row-cb{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;margin-right:4px}
+.bulk-bar{position:sticky;bottom:16px;z-index:200;background:var(--bg2);border:1px solid var(--accent);border-radius:10px;padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 4px 24px rgba(0,0,0,.6);margin-top:12px;transition:opacity .2s}
+.bulk-bar.hidden{display:none}
+.bulk-count{font-weight:700;font-size:14px;color:var(--accent);flex:1;min-width:80px}
+.bulk-actions{display:flex;gap:8px;flex-wrap:wrap}
 /* League filter pills */
 .league-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
 .lp{background:none;border:1.5px solid var(--border);border-radius:20px;padding:5px 16px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;font-family:var(--fb);transition:all .15s;letter-spacing:.3px}
@@ -188,8 +209,22 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
     </div>
     <div id="match-result-count" class="result-count"></div>
     <div class="admin-section">
-      <div class="admin-section-hdr">Matches</div>
+      <div class="admin-section-hdr" style="display:flex;align-items:center;gap:10px">
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted)">
+          <input type="checkbox" id="select-all-cb" class="row-cb" style="margin:0" onchange="toggleSelectAll(this.checked)">
+          Select All
+        </label>
+        <span style="flex:1">Matches</span>
+      </div>
       <div id="matches-list"><div class="loading-overlay"><div class="spinner"></div></div></div>
+    </div>
+    <div class="bulk-bar hidden" id="bulk-bar">
+      <span class="bulk-count" id="bulk-count">0 selected</span>
+      <div class="bulk-actions">
+        <button class="icon-btn" onclick="openBulkEdit()">✏ Edit Selected</button>
+        <button class="icon-btn danger" onclick="bulkDelete()">🗑 Delete Selected</button>
+        <button class="icon-btn" onclick="clearSelection()">✕ Clear</button>
+      </div>
     </div>
   </div>
 
@@ -250,6 +285,63 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="icon-btn" id="recalc-btn" onclick="recalcRatings()">♻ Recalculate Ratings</button>
           <span id="recalc-status" style="font-size:12px;color:var(--muted);align-self:center"></span>
+        </div>
+      </div>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-hdr">CSV Import / Export</div>
+      <div class="admin-row" style="flex-direction:column;align-items:flex-start;gap:14px">
+        <div class="admin-row-info">
+          <strong>Teams &amp; Matches by Season</strong>
+          <span>Download a snapshot of teams or matches as CSV, edit offline, then re-upload. Teams are matched by <strong style="color:var(--text)">league + name</strong> (case-insensitive). Uploading a Teams CSV updates stats for existing teams; uploading a Matches CSV bulk-imports match records. Missing teams in an import are flagged and skipped.</span>
+        </div>
+        <div class="csv-section">
+          <!-- TEAMS DOWNLOAD -->
+          <div class="csv-card">
+            <div class="csv-card-title">📥 Download Teams CSV</div>
+            <div class="csv-card-desc">Exports all active teams with season &amp; lifetime stats. Columns: name, league, season_rating, lifetime_rating, wins, losses, season_games, lifetime_games, total_points, founded, pitch, color, website.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="icon-btn" onclick="downloadTeamsCSV('all')">All Teams</button>
+              <button class="icon-btn" onclick="downloadTeamsCSV('MLQ')">MLQ</button>
+              <button class="icon-btn" onclick="downloadTeamsCSV('Club')">Club</button>
+              <button class="icon-btn" onclick="downloadTeamsCSV('College')">College</button>
+            </div>
+          </div>
+          <!-- TEAMS UPLOAD -->
+          <div class="csv-card">
+            <div class="csv-card-title">📤 Upload Teams CSV</div>
+            <div class="csv-card-desc">Updates existing team stats. Matched by league + name. Unknown teams are skipped. Only provided columns are updated.</div>
+            <div class="drop-zone" id="teams-drop" onclick="document.getElementById('teams-file').click()" ondragover="csvDragOver(event,'teams-drop')" ondragleave="csvDragLeave('teams-drop')" ondrop="csvDrop(event,'teams')">
+              <input type="file" id="teams-file" accept=".csv,text/csv" onchange="handleTeamsCSV(this.files[0])">
+              Drop CSV here or click to browse
+            </div>
+            <div class="csv-preview" id="teams-preview"></div>
+            <div class="csv-import-results" id="teams-results"></div>
+          </div>
+        </div>
+        <div class="csv-section">
+          <!-- MATCHES DOWNLOAD -->
+          <div class="csv-card">
+            <div class="csv-card-title">📥 Download Matches CSV</div>
+            <div class="csv-card-desc">Exports match records. Columns: date, league, winner_name, loser_name, score_winner, score_loser, home_team, forfeit, rating_delta, flag_caught_winner, flag_caught_loser, set_score.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="icon-btn" onclick="downloadMatchesCSV('all')">All Matches</button>
+              <button class="icon-btn" onclick="downloadMatchesCSV('MLQ')">MLQ</button>
+              <button class="icon-btn" onclick="downloadMatchesCSV('Club')">Club</button>
+              <button class="icon-btn" onclick="downloadMatchesCSV('College')">College</button>
+            </div>
+          </div>
+          <!-- MATCHES UPLOAD -->
+          <div class="csv-card">
+            <div class="csv-card-title">📤 Upload Matches CSV</div>
+            <div class="csv-card-desc">Bulk-imports match records. Matched to teams by league + name. Duplicate matches (same date + both teams) are skipped. <strong style="color:var(--danger)">Does not auto-recalculate ratings</strong> — run Recalculate after.</div>
+            <div class="drop-zone" id="matches-drop" onclick="document.getElementById('matches-file').click()" ondragover="csvDragOver(event,'matches-drop')" ondragleave="csvDragLeave('matches-drop')" ondrop="csvDrop(event,'matches')">
+              <input type="file" id="matches-file" accept=".csv,text/csv" onchange="handleMatchesCSV(this.files[0])">
+              Drop CSV here or click to browse
+            </div>
+            <div class="csv-preview" id="matches-preview"></div>
+            <div class="csv-import-results" id="matches-results"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -315,6 +407,50 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
   </div>
 </div>
 
+<!-- ═══ MODAL: BULK EDIT MATCHES ═══ -->
+<div class="moverlay" id="modal-bulk-edit" onclick="closeModal('modal-bulk-edit',event)">
+  <div class="mbox" style="max-width:480px">
+    <div class="mt2">Edit <span id="bulk-edit-count">0</span> Matches</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:20px">Only fields you fill in will be updated. Leave blank to keep existing values.</p>
+    <div class="fr">
+      <div class="fg">
+        <label>Date</label>
+        <input type="date" id="be-date">
+      </div>
+      <div class="fg">
+        <label>League</label>
+        <select id="be-league">
+          <option value="">— Keep existing —</option>
+          <option value="MLQ">MLQ</option>
+          <option value="Club">Club</option>
+          <option value="College">College</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:16px">
+      <label>Home Team</label>
+      <select id="be-home">
+        <option value="">— Keep existing —</option>
+        <option value="winner">Winner</option>
+        <option value="loser">Loser</option>
+        <option value="neutral">Neutral (clear)</option>
+      </select>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(226,75,75,0.05);border:1px solid rgba(226,75,75,0.2);border-radius:8px;margin-bottom:16px">
+      <select id="be-forfeit" style="margin:0">
+        <option value="">— Keep existing forfeit status —</option>
+        <option value="true">Mark as Forfeit</option>
+        <option value="false">Remove Forfeit flag</option>
+      </select>
+    </div>
+    <div id="be-preview" style="font-size:12px;color:var(--muted);margin-bottom:4px"></div>
+    <div class="macts">
+      <button class="bsec" onclick="closeModal('modal-bulk-edit')">Cancel</button>
+      <button class="bpri" onclick="saveBulkEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ MODAL: EDIT MATCH SCORE ═══ -->
 <div class="moverlay" id="modal-edit-match" onclick="closeModal('modal-edit-match',event)">
   <div class="mbox" style="max-width:460px">
@@ -332,6 +468,18 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
         <label id="em-team-b-label">Team B</label>
         <input type="number" id="em-score-b" min="0" placeholder="0" style="font-size:28px;font-weight:800;text-align:center;padding:14px;font-family:var(--fd)">
       </div>
+    </div>
+    <div class="fg" style="margin-bottom:16px">
+      <label>Home Team</label>
+      <select id="em-home">
+        <option value="">— Neutral / Unknown —</option>
+        <option id="em-home-a" value="a"></option>
+        <option id="em-home-b" value="b"></option>
+      </select>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(226,75,75,0.05);border:1px solid rgba(226,75,75,0.2);border-radius:8px;margin-bottom:16px">
+      <input type="checkbox" id="em-forfeit" style="width:18px;height:18px;accent-color:var(--danger);cursor:pointer;flex-shrink:0">
+      <label for="em-forfeit" style="font-size:13px;font-weight:600;color:var(--text);cursor:pointer">Forfeit — loser scored 0, winner scored 65</label>
     </div>
     <div class="fg" style="margin-bottom:16px">
       <label>Date</label>
@@ -414,7 +562,57 @@ function toast(msg,err){
 
 let teams=[], matches=[], users=[], admins=[], currentUser=null;
 let teamLeagueFilter='all', matchLeagueFilter='all';
-let cutoffDate=''; // ISO date string YYYY-MM-DD
+let cutoffDate='';
+let selectedMatchIds=new Set();
+
+function updateBulkBar(){
+  const n=selectedMatchIds.size;
+  const bar=document.getElementById('bulk-bar');
+  const cnt=document.getElementById('bulk-count');
+  const selAll=document.getElementById('select-all-cb');
+  if(bar) bar.classList.toggle('hidden', n===0);
+  if(cnt) cnt.textContent=`${n} match${n===1?'':'es'} selected`;
+  // Update select-all indeterminate state
+  if(selAll){
+    const total=document.querySelectorAll('.match-row-cb').length;
+    selAll.checked=total>0&&n===total;
+    selAll.indeterminate=n>0&&n<total;
+  }
+}
+
+window.toggleMatchSelect=function(id, checked, e){
+  e?.stopPropagation();
+  if(checked) selectedMatchIds.add(id); else selectedMatchIds.delete(id);
+  const row=document.getElementById('mrow-'+id);
+  if(row) row.classList.toggle('selected', checked);
+  updateBulkBar();
+};
+
+window.toggleRowSelect=function(id){
+  const cb=document.getElementById('mcb-'+id);
+  if(!cb) return;
+  const nowChecked=!cb.checked;
+  cb.checked=nowChecked;
+  toggleMatchSelect(id, nowChecked);
+};
+
+window.toggleSelectAll=function(checked){
+  document.querySelectorAll('.match-row-cb').forEach(cb=>{
+    cb.checked=checked;
+    const id=cb.dataset.id;
+    if(checked) selectedMatchIds.add(id); else selectedMatchIds.delete(id);
+    const row=document.getElementById('mrow-'+id);
+    if(row) row.classList.toggle('selected', checked);
+  });
+  updateBulkBar();
+};
+
+window.clearSelection=function(){
+  selectedMatchIds.clear();
+  document.querySelectorAll('.match-row-cb').forEach(cb=>cb.checked=false);
+  document.querySelectorAll('.admin-row.selected').forEach(r=>r.classList.remove('selected'));
+  updateBulkBar();
+}; // ISO date string YYYY-MM-DD
 
 window.setTeamLeagueFilter=function(league, btn){
   teamLeagueFilter=league;
@@ -710,24 +908,112 @@ window.filterMatches=function(){
     return matchSearch&&matchTeam&&matchYear&&matchLeague;
   });
 
+  filtered.sort((a,b)=>(b.date||'') < (a.date||'') ? -1 : (b.date||'') > (a.date||'') ? 1 : (b.timestamp||0)-(a.timestamp||0));
+
   const count=document.getElementById('match-result-count');
   if(count) count.textContent=`${filtered.length} of ${matches.length} matches`;
 
   const el=document.getElementById('matches-list'); if(!el) return;
   if(!filtered.length){ el.innerHTML=`<div class="es">No matches match your filters.</div>`; return; }
 
+  // Preserve selections that are still in the filtered list
+  const filteredIds=new Set(filtered.map(m=>m.id));
+  selectedMatchIds.forEach(id=>{ if(!filteredIds.has(id)) selectedMatchIds.delete(id); });
+
   el.innerHTML=filtered.map(m=>{
     const wTeam=teams.find(t=>t.id===m.winner);
     const lTeam=teams.find(t=>t.id===m.loser);
-    return`<div class="admin-row">
+    const homeTeam=m.homeTeam?teams.find(t=>t.id===m.homeTeam):null;
+    const haBadge=homeTeam?`<span style="font-size:10px;color:var(--muted)"> · 🏠 ${esc(homeTeam.name)}</span>`:'';
+    const ffBadge=m.forfeit?`<span style="font-size:10px;font-weight:700;color:var(--danger);background:rgba(226,75,75,0.1);border-radius:4px;padding:1px 5px;margin-left:4px">FORFEIT</span>`:'';
+    const isSel=selectedMatchIds.has(m.id);
+    return`<div class="admin-row selectable${isSel?' selected':''}" id="mrow-${m.id}" onclick="toggleRowSelect('${m.id}')">
+      <input type="checkbox" class="row-cb match-row-cb" id="mcb-${m.id}" data-id="${m.id}" ${isSel?'checked':''} onclick="toggleMatchSelect('${m.id}',this.checked,event)">
       <div class="admin-row-info">
-        <strong>🏆 ${esc(wTeam?.name||'?')} ${m.scoreW??'?'} – ${m.scoreL??'?'} ${esc(lTeam?.name||'?')}</strong>
-        <span>${esc(m.date||'')} · Δ ${m.ratingDelta||'?'}</span>
+        <strong>🏆 ${esc(wTeam?.name||'?')} ${m.scoreW??'?'} – ${m.scoreL??'?'} ${esc(lTeam?.name||'?')}${ffBadge}</strong>
+        <span>${esc(m.date||'')}${m.league?' · '+m.league:''} · Δ ${m.ratingDelta||'?'}${haBadge}</span>
       </div>
-      <button class="icon-btn" onclick="openEditMatch('${m.id}')">Edit Score</button>
-      <button class="icon-btn danger" onclick="openDeleteMatch('${m.id}')">Delete</button>
+      <button class="icon-btn" onclick="event.stopPropagation();openEditMatch('${m.id}')">Edit</button>
+      <button class="icon-btn danger" onclick="event.stopPropagation();openDeleteMatch('${m.id}')">Delete</button>
     </div>`;
   }).join('');
+
+  updateBulkBar();
+};
+
+// ── Bulk match actions ────────────────────────────────────────────────────────
+window.openBulkEdit=function(){
+  const n=selectedMatchIds.size; if(!n) return;
+  document.getElementById('bulk-edit-count').textContent=n;
+  document.getElementById('be-date').value='';
+  document.getElementById('be-league').value='';
+  document.getElementById('be-home').value='';
+  document.getElementById('be-forfeit').value='';
+  document.getElementById('be-preview').textContent=`Will update ${n} match${n===1?'':'es'}.`;
+  openModal('modal-bulk-edit');
+};
+
+window.saveBulkEdit=async function(){
+  const ids=[...selectedMatchIds];
+  if(!ids.length) return;
+  const date=document.getElementById('be-date').value;
+  const league=document.getElementById('be-league').value;
+  const homeSel=document.getElementById('be-home').value;
+  const forfeitVal=document.getElementById('be-forfeit').value;
+
+  // Build the update object — only include fields that were actually set
+  const baseUpdate={};
+  if(date) baseUpdate.date=date;
+  if(league) baseUpdate.league=league;
+  if(forfeitVal!==''){
+    baseUpdate.forfeit=forfeitVal==='true';
+    // If removing forfeit flag, clear forfeitingTeam
+    if(forfeitVal==='false') baseUpdate.forfeitingTeam=null;
+  }
+
+  try{
+    const BATCH_LIMIT=400;
+    const ops=ids.map(id=>{
+      const m=matches.find(x=>x.id===id);
+      const update={...baseUpdate};
+      // Home team is per-match since it depends on who winner/loser is
+      if(homeSel==='winner') { update.homeTeam=m?.winner||null; update.awayTeam=m?.loser||null; }
+      else if(homeSel==='loser') { update.homeTeam=m?.loser||null; update.awayTeam=m?.winner||null; }
+      else if(homeSel==='neutral') { update.homeTeam=null; update.awayTeam=null; }
+      // If marking forfeit, set forfeitingTeam to loser
+      if(forfeitVal==='true'&&m) update.forfeitingTeam=m.loser||null;
+      return {ref:doc(db,'matches',id), data:update};
+    });
+
+    const allOps=[...ops];
+    while(allOps.length){
+      const chunk=allOps.splice(0,BATCH_LIMIT);
+      const b=writeBatch(db);
+      chunk.forEach(({ref,data})=>b.update(ref,data));
+      await b.commit();
+    }
+    closeModal('modal-bulk-edit');
+    toast(`Updated ${ids.length} match${ids.length===1?'':'es'}!`);
+    clearSelection();
+  }catch(e){ toast('Error: '+e.message,true); }
+};
+
+window.bulkDelete=async function(){
+  const ids=[...selectedMatchIds];
+  if(!ids.length) return;
+  if(!confirm(`Delete ${ids.length} match${ids.length===1?'':'es'}? This cannot be undone.\n\nRatings are NOT automatically reversed — run Recalculate after if needed.`)) return;
+  try{
+    const BATCH_LIMIT=400;
+    const allIds=[...ids];
+    while(allIds.length){
+      const chunk=allIds.splice(0,BATCH_LIMIT);
+      const b=writeBatch(db);
+      chunk.forEach(id=>b.delete(doc(db,'matches',id)));
+      await b.commit();
+    }
+    toast(`Deleted ${ids.length} match${ids.length===1?'':'es'}.`);
+    clearSelection();
+  }catch(e){ toast('Error: '+e.message,true); }
 };
 
 // ── Edit match score ──────────────────────────────────────────────────────────
@@ -742,20 +1028,39 @@ window.openEditMatch=function(id){
   document.getElementById('em-score-a').value=m.scoreW??'';
   document.getElementById('em-score-b').value=m.scoreL??'';
   document.getElementById('em-date').value=m.date||'';
+  document.getElementById('em-forfeit').checked=!!m.forfeit;
+  // Home team dropdown — 'a' = winner, 'b' = loser
+  document.getElementById('em-home-a').textContent=wTeam?.name||'Winner';
+  document.getElementById('em-home-b').textContent=lTeam?.name||'Loser';
+  const homeEl=document.getElementById('em-home');
+  if(m.homeTeam===m.winner) homeEl.value='a';
+  else if(m.homeTeam===m.loser) homeEl.value='b';
+  else homeEl.value='';
   openModal('modal-edit-match');
 };
 window.saveEditedMatch=async function(){
   if(!_editMatchId) return;
+  const m=matches.find(x=>x.id===_editMatchId); if(!m) return;
   const scoreW=parseInt(document.getElementById('em-score-a').value);
   const scoreL=parseInt(document.getElementById('em-score-b').value);
   const date=document.getElementById('em-date').value;
   const doRecalc=document.getElementById('em-recalc')?.checked;
+  const homeSel=document.getElementById('em-home').value; // 'a'=winner, 'b'=loser, ''=neutral
+  const homeTeam=homeSel==='a'?m.winner:homeSel==='b'?m.loser:null;
+  const awayTeam=homeSel==='a'?m.loser:homeSel==='b'?m.winner:null;
+  const isForfeit=document.getElementById('em-forfeit')?.checked||false;
   if(isNaN(scoreW)||isNaN(scoreL)){ toast('Enter valid scores',true); return; }
   if(scoreW<scoreL){ toast('Winner score must be ≥ loser score',true); return; }
   try{
-    await updateDoc(doc(db,'matches',_editMatchId),{scoreW,scoreL,...(date?{date}:{})});
+    await updateDoc(doc(db,'matches',_editMatchId),{
+      scoreW, scoreL,
+      homeTeam, awayTeam,
+      forfeit:isForfeit,
+      forfeitingTeam:isForfeit?m.loser:null,
+      ...(date?{date}:{})
+    });
     closeModal('modal-edit-match');
-    toast('Score updated!');
+    toast('Match updated!');
     if(doRecalc){ setTimeout(()=>recalcRatings(),400); }
     _editMatchId=null;
   }catch(e){ toast('Error: '+e.message,true); }
@@ -1106,6 +1411,286 @@ window.saveCutoffDate=async function(){
     if(st) st.textContent=`Cutoff saved: ${val} — stats locked. Recalculate to replay matches after this date.`;
     toast('Cutoff date saved & stats locked!');
   }catch(e){ toast('Error: '+e.message,true); }
+};
+
+// ── CSV Helpers ───────────────────────────────────────────────────────────────
+function csvEsc(v){
+  const s=String(v??'');
+  return (s.includes(',')||s.includes('"')||s.includes('\n'))?`"${s.replace(/"/g,'""')}"`:s;
+}
+function parseCSV(text){
+  const lines=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+  const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/"/g,''));
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    const line=lines[i].trim(); if(!line) continue;
+    const vals=[];
+    let inQ=false,cur='';
+    for(let c=0;c<line.length;c++){
+      const ch=line[c];
+      if(ch==='"'){ inQ=!inQ; }
+      else if(ch===','&&!inQ){ vals.push(cur); cur=''; }
+      else { cur+=ch; }
+    }
+    vals.push(cur);
+    const row={};
+    headers.forEach((h,i)=>{ row[h]=(vals[i]||'').trim(); });
+    rows.push(row);
+  }
+  return {headers,rows};
+}
+function triggerDownload(filename,content,mime='text/csv'){
+  const blob=new Blob([content],{type:mime});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=filename; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+window.csvDragOver=function(e,id){ e.preventDefault(); document.getElementById(id)?.classList.add('drag-over'); };
+window.csvDragLeave=function(id){ document.getElementById(id)?.classList.remove('drag-over'); };
+window.csvDrop=function(e,type){ e.preventDefault(); csvDragLeave(type+'-drop'); const f=e.dataTransfer.files[0]; if(!f) return; if(type==='teams') handleTeamsCSV(f); else handleMatchesCSV(f); };
+
+// ── TEAMS CSV DOWNLOAD ────────────────────────────────────────────────────────
+window.downloadTeamsCSV=function(league){
+  const COLS=['name','league','season_rating','lifetime_rating','wins','losses','season_games','lifetime_games','total_points','founded','pitch','color','website'];
+  let list=teams.filter(t=>!t.archived);
+  if(league!=='all') list=list.filter(t=>(t.league||'')=== league);
+  list.sort((a,b)=>(a.league||'').localeCompare(b.league||'')||a.name.localeCompare(b.name));
+  const header=COLS.join(',');
+  const rows=list.map(t=>[
+    csvEsc(t.name), csvEsc(t.league||''), csvEsc((t.rating??5).toFixed(5)),
+    csvEsc((t.lifetimeRating??t.rating??5).toFixed(5)),
+    csvEsc(t.wins||0), csvEsc(t.losses||0),
+    csvEsc(t.seasonGames||0), csvEsc(t.lifetimeGames||0), csvEsc(t.totalPoints||0),
+    csvEsc(t.founded||''), csvEsc(t.pitch||''), csvEsc(t.color||''), csvEsc(t.website||'')
+  ].join(','));
+  const csv=[header,...rows].join('\n');
+  const slug=league==='all'?'all':league.toLowerCase();
+  const date=new Date().toISOString().slice(0,10);
+  triggerDownload(`teams_${slug}_${date}.csv`,csv);
+  toast(`Downloaded ${list.length} team${list.length===1?'':'s'}`);
+};
+
+// ── TEAMS CSV UPLOAD ──────────────────────────────────────────────────────────
+window.handleTeamsCSV=async function(file){
+  if(!file){ return; }
+  const text=await file.text();
+  const {headers,rows}=parseCSV(text);
+
+  // Show raw preview
+  const prev=document.getElementById('teams-preview');
+  if(prev){ prev.style.display='block'; prev.textContent=text.slice(0,600)+(text.length>600?'\n…':''); }
+
+  const res=document.getElementById('teams-results');
+  if(res) res.innerHTML='<span style="color:var(--muted)">Processing…</span>';
+
+  // Validate headers — must have at least name and league
+  if(!headers.includes('name')||!headers.includes('league')){
+    if(res) res.innerHTML='<span class="csv-err">❌ CSV must have "name" and "league" columns.</span>';
+    return;
+  }
+
+  // Build lookup: "league|name" → team id
+  const lookup={};
+  teams.forEach(t=>{ lookup[`${(t.league||'').toLowerCase()}|${t.name.toLowerCase()}`]=t; });
+
+  const UPDATABLE=['season_rating','lifetime_rating','wins','losses','season_games','lifetime_games','total_points','founded','pitch','color','website'];
+  const FIELD_MAP={season_rating:'rating',lifetime_rating:'lifetimeRating',wins:'wins',losses:'losses',season_games:'seasonGames',lifetime_games:'lifetimeGames',total_points:'totalPoints',founded:'founded',pitch:'pitch',color:'color',website:'website'};
+  const NUM_FIELDS=new Set(['season_rating','lifetime_rating','wins','losses','season_games','lifetime_games','total_points']);
+
+  let updated=0, skipped=0, notFound=0;
+  const logLines=[];
+  const ops=[];
+
+  for(const row of rows){
+    const key=`${(row.league||'').toLowerCase()}|${(row.name||'').toLowerCase()}`;
+    const team=lookup[key];
+    if(!team){ notFound++; logLines.push(`<span class="csv-warn">⚠ Not found: ${row.name||'?'} (${row.league||'?'})</span>`); continue; }
+
+    const data={};
+    for(const col of UPDATABLE){
+      if(!headers.includes(col)||row[col]==='') continue;
+      const field=FIELD_MAP[col];
+      data[field]=NUM_FIELDS.has(col)?parseFloat(row[col]):row[col];
+    }
+    if(!Object.keys(data).length){ skipped++; logLines.push(`<span class="csv-warn">⚠ No updatable columns for: ${team.name}</span>`); continue; }
+
+    ops.push({ref:doc(db,'teams',team.id), data});
+    updated++;
+    logLines.push(`<span class="csv-ok">✓ ${team.name} (${team.league||'—'})</span>`);
+  }
+
+  // Batch write
+  try{
+    const BATCH_LIMIT=400;
+    const allOps=[...ops];
+    while(allOps.length){
+      const chunk=allOps.splice(0,BATCH_LIMIT);
+      const b=writeBatch(db);
+      chunk.forEach(({ref,data})=>b.update(ref,data));
+      await b.commit();
+    }
+    const summary=`<strong class="csv-ok">✓ ${updated} updated</strong>${notFound?` · <strong class="csv-warn">${notFound} not found</strong>`:''}${skipped?` · <strong class="csv-warn">${skipped} skipped</strong>`:''}`;
+    if(res) res.innerHTML=summary+'<br>'+logLines.join('<br>');
+    toast(`Teams CSV imported: ${updated} updated`);
+  }catch(e){
+    if(res) res.innerHTML=`<span class="csv-err">❌ Write error: ${e.message}</span>`;
+    toast('CSV import error: '+e.message,true);
+  }
+};
+
+// ── MATCHES CSV DOWNLOAD ──────────────────────────────────────────────────────
+window.downloadMatchesCSV=function(league){
+  let list=[...matches];
+  if(league!=='all') list=list.filter(m=>(m.league||'')=== league);
+  list.sort((a,b)=>(a.date||'')<(b.date||'')?-1:1);
+
+  const COLS=['date','league','winner_name','loser_name','score_winner','score_loser','home_team','forfeit','rating_delta','flag_caught_winner','flag_caught_loser','set_score'];
+  const header=COLS.join(',');
+  const rows=list.map(m=>{
+    const wTeam=teams.find(t=>t.id===m.winner);
+    const lTeam=teams.find(t=>t.id===m.loser);
+    const homeTeamObj=m.homeTeam?teams.find(t=>t.id===m.homeTeam):null;
+    return [
+      csvEsc(m.date||''), csvEsc(m.league||''),
+      csvEsc(wTeam?.name||m.winner||''), csvEsc(lTeam?.name||m.loser||''),
+      csvEsc(m.scoreW??''), csvEsc(m.scoreL??''),
+      csvEsc(homeTeamObj?.name||''),
+      csvEsc(m.forfeit?'true':'false'),
+      csvEsc(m.ratingDelta||''),
+      csvEsc(m.flagCaughtA!=null?(m.winner===m.teamA?m.flagCaughtA:m.flagCaughtB)?'true':'false':''),
+      csvEsc(m.flagCaughtB!=null?(m.winner===m.teamA?m.flagCaughtB:m.flagCaughtA)?'true':'false':''),
+      csvEsc(m.setScore||'')
+    ].join(',');
+  });
+  const csv=[header,...rows].join('\n');
+  const slug=league==='all'?'all':league.toLowerCase();
+  const date=new Date().toISOString().slice(0,10);
+  triggerDownload(`matches_${slug}_${date}.csv`,csv);
+  toast(`Downloaded ${list.length} match${list.length===1?'':'es'}`);
+};
+
+// ── MATCHES CSV UPLOAD ────────────────────────────────────────────────────────
+window.handleMatchesCSV=async function(file){
+  if(!file) return;
+  const text=await file.text();
+  const {headers,rows}=parseCSV(text);
+
+  const prev=document.getElementById('matches-preview');
+  if(prev){ prev.style.display='block'; prev.textContent=text.slice(0,600)+(text.length>600?'\n…':''); }
+
+  const res=document.getElementById('matches-results');
+  if(res) res.innerHTML='<span style="color:var(--muted)">Processing…</span>';
+
+  const required=['winner_name','loser_name','score_winner','score_loser'];
+  const missing=required.filter(c=>!headers.includes(c));
+  if(missing.length){
+    if(res) res.innerHTML=`<span class="csv-err">❌ Missing required columns: ${missing.join(', ')}</span>`;
+    return;
+  }
+
+  // Build lookup
+  const lookup={};
+  teams.forEach(t=>{ lookup[`${(t.league||'').toLowerCase()}|${t.name.toLowerCase()}`]=t; });
+  // Also by name only (fallback when league col absent)
+  const nameLookup={};
+  teams.forEach(t=>{ nameLookup[t.name.toLowerCase()]=t; });
+
+  // Build set of existing matches to detect duplicates: "date|wId|lId|scoreW|scoreL"
+  const existingKeys=new Set(matches.map(m=>`${m.date||''}|${m.winner||''}|${m.loser||''}|${m.scoreW??''}|${m.scoreL??''}`));
+
+  let imported=0, dupes=0, errors=0;
+  const logLines=[];
+  const ops=[];
+
+  for(const row of rows){
+    const league=(row.league||'').trim();
+    const wName=(row.winner_name||'').trim();
+    const lName=(row.loser_name||'').trim();
+    const scoreW=parseInt(row.score_winner);
+    const scoreL=parseInt(row.score_loser);
+    const date=(row.date||'').trim();
+
+    if(!wName||!lName||isNaN(scoreW)||isNaN(scoreL)){
+      errors++;
+      logLines.push(`<span class="csv-err">❌ Invalid row: ${wName||'?'} vs ${lName||'?'}</span>`);
+      continue;
+    }
+
+    // Resolve teams — try league+name first, fallback to name only
+    const wKey=`${league.toLowerCase()}|${wName.toLowerCase()}`;
+    const lKey=`${league.toLowerCase()}|${lName.toLowerCase()}`;
+    const wTeam=lookup[wKey]||nameLookup[wName.toLowerCase()];
+    const lTeam=lookup[lKey]||nameLookup[lName.toLowerCase()];
+
+    if(!wTeam){ errors++; logLines.push(`<span class="csv-err">❌ Winner not found: "${wName}"</span>`); continue; }
+    if(!lTeam){ errors++; logLines.push(`<span class="csv-err">❌ Loser not found: "${lName}"</span>`); continue; }
+    if(wTeam.id===lTeam.id){ errors++; logLines.push(`<span class="csv-err">❌ Same team for both sides: "${wName}"</span>`); continue; }
+    if(scoreW<scoreL){ errors++; logLines.push(`<span class="csv-err">❌ Winner score < loser score: ${wName} ${scoreW}–${scoreL}</span>`); continue; }
+
+    // Dupe check — include scores so same-day rematches between the same pair aren't dropped
+    const dupeKey=`${date}|${wTeam.id}|${lTeam.id}|${scoreW}|${scoreL}`;
+    const dupeKeyRev=`${date}|${lTeam.id}|${wTeam.id}|${scoreL}|${scoreW}`;
+    if(existingKeys.has(dupeKey)||existingKeys.has(dupeKeyRev)){
+      dupes++;
+      logLines.push(`<span class="csv-warn">⚠ Duplicate skipped: ${wName} vs ${lName} on ${date}</span>`);
+      continue;
+    }
+    existingKeys.add(dupeKey);
+
+    // Resolve home team if column present
+    const homeTeamName=(row.home_team||'').trim();
+    let homeTeamId=null, awayTeamId=null;
+    if(homeTeamName){
+      const htKey=`${league.toLowerCase()}|${homeTeamName.toLowerCase()}`;
+      const htTeam=lookup[htKey]||nameLookup[homeTeamName.toLowerCase()];
+      if(htTeam){ homeTeamId=htTeam.id; awayTeamId=(htTeam.id===wTeam.id?lTeam.id:wTeam.id); }
+    }
+
+    const isForfeit=(row.forfeit||'').toLowerCase()==='true';
+
+    // Build match doc (no rating calculation — admin told to run recalc after)
+    const matchDoc={
+      winner:wTeam.id, loser:lTeam.id,
+      teamA:wTeam.id, teamB:lTeam.id,
+      scoreW, scoreL,
+      scoreA:scoreW, scoreB:scoreL,
+      date:date||null,
+      league:league||wTeam.league||'',
+      homeTeam:homeTeamId, awayTeam:awayTeamId,
+      forfeit:isForfeit,
+      forfeitingTeam:isForfeit?lTeam.id:null,
+      ratingDelta:'0',
+      ratingChanges:{},
+      flagCaughtA:row.flag_caught_winner==='true',
+      flagCaughtB:row.flag_caught_loser==='true',
+      setScore:row.set_score?parseInt(row.set_score):80,
+      timestamp:date?new Date(date+'T12:00:00').getTime():Date.now(),
+      importedBy:currentUser?.uid||null,
+      importedAt:Date.now()
+    };
+    ops.push(matchDoc);
+    imported++;
+    logLines.push(`<span class="csv-ok">✓ ${wName} ${scoreW}–${scoreL} ${lName}${date?' on '+date:''}</span>`);
+  }
+
+  // Write
+  try{
+    const BATCH=450;
+    const allOps=[...ops];
+    while(allOps.length){
+      const chunk=allOps.splice(0,BATCH);
+      const b=writeBatch(db);
+      chunk.forEach(mDoc=>b.set(doc(collection(db,'matches')),mDoc));
+      await b.commit();
+    }
+    const summary=`<strong class="csv-ok">✓ ${imported} imported</strong>${dupes?` · <strong class="csv-warn">${dupes} duplicates skipped</strong>`:''}${errors?` · <strong class="csv-err">${errors} errors</strong>`:''}`;
+    if(res) res.innerHTML=summary+(logLines.length?'<br>'+logLines.join('<br>'):'');
+    toast(`Matches CSV imported: ${imported} added`);
+  }catch(e){
+    if(res) res.innerHTML=`<span class="csv-err">❌ Write error: ${e.message}</span>`;
+    toast('CSV import error: '+e.message,true);
+  }
 };
 
 // ── Season Reset ──────────────────────────────────────────────────────────────
