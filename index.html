@@ -510,6 +510,23 @@ function renderMovement(){
     }).join('')}</tbody></table></div>`;
 }
 
+// ── League & team color helpers ───────────────────────────────────────────────
+function leagueBadgeHTML(league){
+  if(!league) return '';
+  const styles={
+    'MLQ':  'background:rgba(220,220,235,0.12);color:#E8E8F0;border-color:rgba(220,220,235,0.3)',
+    'Club': 'background:rgba(200,168,75,0.14);color:#C8A84B;border-color:rgba(200,168,75,0.35)',
+    'College':'background:rgba(61,191,122,0.12);color:#3DBF7A;border-color:rgba(61,191,122,0.3)'
+  };
+  const s=styles[league]||'background:rgba(123,94,167,0.12);color:#a98fd4;border-color:rgba(123,94,167,0.3)';
+  return `<span style="display:inline-block;${s};border:1px solid;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-left:8px">${league}</span>`;
+}
+function teamColor(t){ return (t?.color&&t.color.trim())?t.color.trim():null; }
+function teamNameHTML(t, extra=''){
+  const c=teamColor(t);
+  return c?`<span style="color:${c}${extra}">${t.name}</span>`:t.name;
+}
+
 // ── Rankings ─────────────────────────────────────────────────────────────────
 let lbMode='season', sortCol='rank', sortDir='asc', leagueFilter='all';
 
@@ -544,7 +561,8 @@ function renderRankings(){
   let list=teams.filter(t=>!t.archived).map(t=>{
     const r=lbMode==='season'?(t.rating||RAW_CENTER):(t.lifetimeRating||t.rating||RAW_CENTER);
     const gp=lbMode==='season'?(t.seasonGames||0):(t.lifetimeGames||0);
-    const w=t.wins||0, l=t.losses||0;
+    const w=lbMode==='season'?(t.wins||0):(t.lifetimeWins||0);
+    const l=lbMode==='season'?(t.losses||0):(t.lifetimeLosses||0);
     const wp=gp>0?Math.round(w/gp*100):0;
     return{...t,dispR:toDisp(r),r,gp,w,l,wp};
   });
@@ -567,7 +585,7 @@ function renderRankings(){
     const rankDisp=ranked?`<span class="rn${t.rank<=3?' top3':''}">${t.rank}</span>`:`<span class="rn">—</span>`;
     return`<tr>
       <td>${rankDisp}</td>
-      <td><span class="tn" onclick="openTeamStats('${t.id}')">${t.name}</span></td>
+      <td><span class="tn" onclick="openTeamStats('${t.id}')">${teamNameHTML(t)}</span></td>
       <td><span class="rp">${ranked?t.dispR:'—'}</span></td>
       <td style="font-weight:600">${t.w} – ${t.l}</td>
       <td style="color:var(--muted)">${t.gp}</td>
@@ -635,25 +653,30 @@ window.renderTeamStats=function(){
   const r=toDisp(t.rating||RAW_CENTER);
   const lr=toDisp(t.lifetimeRating||t.rating||RAW_CENTER);
   const gp=t.seasonGames||0;
-  const lgp=t.lifetimeGames||0;
   const w=t.wins||0, l=t.losses||0;
   const pts=t.totalPoints||0;
   const ppg=gp>0?(pts/gp).toFixed(1):'—';
-  const lw=t.lifetimeWins||w, ll=t.lifetimelosses||l;
-  const lgames=lgp||0;
-  const lpts=t.lifetimeTotalPoints||pts;
-  const lppg=lgames>0?(lpts/lgames).toFixed(1):'—';
-  const flagCatch=t.flagCatchPct!=null?parseFloat(t.flagCatchPct).toFixed(1)+'%':'—';
-  const leagueBadge=t.league?`<span style="display:inline-block;background:rgba(123,94,167,0.15);color:#a98fd4;border:1px solid rgba(123,94,167,0.3);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-left:8px">${t.league}</span>`:'';
 
-  const teamMatches=matches.filter(m=>m.teamA===id||m.teamB===id||m.winner===id||m.loser===id).slice(-20).reverse();
+  // Lifetime stats — written directly by recalc
+  const lw    = t.lifetimeWins    ?? t.wins    ?? 0;
+  const ll    = t.lifetimeLosses  ?? t.losses  ?? 0;
+  const lgames = t.lifetimeGames  ?? gp;
+  const lpts  = t.lifetimeTotalPoints ?? t.totalPoints ?? pts;
+  const lppg = lgames>0 ? (lpts/lgames).toFixed(1) : '—';
+  const flagCatch=t.flagCatchPct!=null?parseFloat(t.flagCatchPct).toFixed(1)+'%':'—';
+  const leagueBadge=leagueBadgeHTML(t.league);
+  const nameColor=teamColor(t);
+  const styledName=nameColor?`<span style="color:${nameColor}">${t.name}</span>`:t.name;
+
+  const teamMatches=matches.filter(m=>m.teamA===id||m.teamB===id||m.winner===id||m.loser===id)
+    .sort((a,b)=>(b.date||'') < (a.date||'')?-1:(b.date||'')>(a.date||'')?1:0).slice(0,20);
 
   container.innerHTML=`
     <div class="pp">
       <div class="ptop">
         <div class="av">${initials(t.name)}</div>
         <div>
-          <div class="pname">${t.name}${leagueBadge}</div>
+          <div class="pname">${styledName}${leagueBadge}</div>
           <div class="pmeta">Established ${t.founded||new Date().getFullYear()}</div>
         </div>
         <div class="prb">
@@ -680,18 +703,24 @@ window.renderTeamStats=function(){
     <div class="mh">
       <div class="mhh">Recent Matches</div>
       ${teamMatches.length?teamMatches.map(m=>{
-        const isWin=(m.winner===id)||(m.teamA===id&&m.scoreA>m.scoreB);
-        const oppId=m.winner===id?m.loser:(m.teamA===id?m.teamB:m.teamA);
+        const isWin=(m.winner===id);
+        const oppId=m.winner===id?m.loser:m.winner;
         const opp=teams.find(x=>x.id===oppId);
-        const oppName=opp?.name||'Opponent';
-        const myScore=m.winner===id?m.scoreW:(m.teamA===id?m.scoreA:m.scoreB);
-        const theirScore=m.winner===id?m.scoreL:(m.teamA===id?m.scoreB:m.scoreA);
+        const myScore=m.winner===id?m.scoreW:m.scoreL;
+        const theirScore=m.winner===id?m.scoreL:m.scoreW;
         const delta=m.ratingChanges?.[id];
         const ds=delta!=null?(delta>0?'+':'')+parseFloat(delta).toFixed(2):null;
+        const isHome=m.homeTeam===id;
+        const isAway=m.awayTeam===id;
+        const haTag=isHome?`<span style="font-size:10px;color:var(--success);font-weight:700">🏠</span>`:isAway?`<span style="font-size:10px;color:var(--muted);font-weight:700">✈</span>`:'';
+        const ffTag=m.forfeit?`<span style="font-size:10px;font-weight:700;color:var(--danger)">FF</span>`:'';
+        const oppColor=teamColor(opp);
+        const oppNameStyled=oppColor?`<span style="color:${oppColor}">${opp?.name||'Opponent'}</span>`:(opp?.name||'Opponent');
         return`<div class="mr">
           <div class="mres ${isWin?'W':'L'}">${isWin?'W':'L'}</div>
           <div class="mscore">${myScore??'—'} – ${theirScore??'—'}</div>
-          <div class="mopp">vs ${oppName}</div>
+          <div class="mopp">vs ${oppNameStyled}${haTag?` ${haTag}`:''}</div>
+          ${ffTag?`<div style="align-self:center">${ffTag}</div>`:''}
           ${ds?`<div class="md ${parseFloat(delta)>0?'pos':'neg'}">${ds}</div>`:''}
           <div class="mdate">${m.date||''}</div>
         </div>`;

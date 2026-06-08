@@ -824,6 +824,22 @@ window.confirmDeleteUser=async function(){
   }catch(e){ toast('Error: '+e.message,true); }
 };
 
+// ── League & team color helpers ───────────────────────────────────────────────
+function leagueBadgeHTML(league){
+  if(!league) return '';
+  const styles={
+    'MLQ':  'background:rgba(220,220,235,0.12);color:#E8E8F0;border-color:rgba(220,220,235,0.3)',
+    'Club': 'background:rgba(200,168,75,0.14);color:#C8A84B;border-color:rgba(200,168,75,0.35)',
+    'College':'background:rgba(61,191,122,0.12);color:#3DBF7A;border-color:rgba(61,191,122,0.3)'
+  };
+  const s=styles[league]||'background:rgba(123,94,167,0.12);color:#a98fd4;border-color:rgba(123,94,167,0.3)';
+  return `<span style="display:inline-block;${s};border:1px solid;border-radius:20px;padding:2px 9px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">${league}</span>`;
+}
+function teamNameStyled(t, extra=''){
+  const c=(t?.color&&t.color.trim())?t.color.trim():null;
+  return c?`<span style="color:${c}${extra}">${esc(t.name)}</span>`:esc(t.name);
+}
+
 // ── Teams ─────────────────────────────────────────────────────────────────────
 function renderTeams(){
   const el=document.getElementById('teams-list'); if(!el) return;
@@ -860,7 +876,7 @@ function renderTeams(){
     <div class="admin-row">
       <div class="av">${t.logoUrl?`<img src="${esc(t.logoUrl)}" alt="">`:esc(initials(t.name))}</div>
       <div class="admin-row-info">
-        <strong>${esc(t.name)}${t.league?` <span style="font-size:11px;font-weight:700;color:#a98fd4;background:rgba(123,94,167,0.12);border-radius:10px;padding:1px 7px">${esc(t.league)}</span>`:''}</strong>
+        <strong>${teamNameStyled(t)} ${t.league?leagueBadgeHTML(t.league):''}</strong>
         <span>Season: ${toDisp(t.rating)} · Lifetime: ${toDisp(t.lifetimeRating||t.rating)} · W${t.wins||0}/L${t.losses||0} · ${t.seasonGames||0} GP${t.ownerUid?' · Owner set':''}</span>
       </div>
       <button class="icon-btn" onclick="openEditTeam('${t.id}')">Edit</button>
@@ -927,11 +943,13 @@ window.filterMatches=function(){
     const haBadge=homeTeam?`<span style="font-size:10px;color:var(--muted)"> · 🏠 ${esc(homeTeam.name)}</span>`:'';
     const ffBadge=m.forfeit?`<span style="font-size:10px;font-weight:700;color:var(--danger);background:rgba(226,75,75,0.1);border-radius:4px;padding:1px 5px;margin-left:4px">FORFEIT</span>`:'';
     const isSel=selectedMatchIds.has(m.id);
+    const wName=wTeam?teamNameStyled(wTeam):(m.winner||'?');
+    const lName=lTeam?teamNameStyled(lTeam):(m.loser||'?');
     return`<div class="admin-row selectable${isSel?' selected':''}" id="mrow-${m.id}" onclick="toggleRowSelect('${m.id}')">
       <input type="checkbox" class="row-cb match-row-cb" id="mcb-${m.id}" data-id="${m.id}" ${isSel?'checked':''} onclick="toggleMatchSelect('${m.id}',this.checked,event)">
       <div class="admin-row-info">
-        <strong>🏆 ${esc(wTeam?.name||'?')} ${m.scoreW??'?'} – ${m.scoreL??'?'} ${esc(lTeam?.name||'?')}${ffBadge}</strong>
-        <span>${esc(m.date||'')}${m.league?' · '+m.league:''} · Δ ${m.ratingDelta||'?'}${haBadge}</span>
+        <strong>🏆 ${wName} ${m.scoreW??'?'} – ${m.scoreL??'?'} ${lName}${ffBadge}</strong>
+        <span>${esc(m.date||'')}${m.league?' · '+leagueBadgeHTML(m.league):''} · Δ ${m.ratingDelta||'?'}${haBadge}</span>
       </div>
       <button class="icon-btn" onclick="event.stopPropagation();openEditMatch('${m.id}')">Edit</button>
       <button class="icon-btn danger" onclick="event.stopPropagation();openDeleteMatch('${m.id}')">Delete</button>
@@ -1249,11 +1267,13 @@ async function loadCutoffDate(){
     const snap=await getDoc(doc(db,'settings','recalc'));
     if(snap.exists()&&snap.data().cutoffDate){
       cutoffDate=snap.data().cutoffDate;
-      const el=document.getElementById('cutoff-date');
-      if(el) el.value=cutoffDate;
-      const st=document.getElementById('cutoff-status');
-      if(st) st.textContent=`Current cutoff: ${cutoffDate} — matches after this date will be replayed.`;
+    } else {
+      cutoffDate='2010-01-01';
     }
+    const el=document.getElementById('cutoff-date');
+    if(el) el.value=cutoffDate;
+    const st=document.getElementById('cutoff-status');
+    if(st) st.textContent=`Current cutoff: ${cutoffDate} — matches after this date will be replayed.`;
   }catch(e){}
 }
 
@@ -1297,7 +1317,9 @@ window.recalcRatings=async function(){
       teamStates[t.id]={
         rating: cd ? (t.lockedRating??t.rating??RECALC_RAW_CENTER) : RECALC_RAW_CENTER,
         lifetimeRating: cd ? (t.lockedLifetimeRating??t.lifetimeRating??t.rating??RECALC_RAW_CENTER) : RECALC_RAW_CENTER,
-        wins:0, losses:0, seasonGames:0, lifetimeGames:0, totalPoints:0
+        wins:0, losses:0, seasonGames:0,
+        lifetimeWins:0, lifetimeLosses:0, lifetimeGames:0,
+        totalPoints:0, lifetimeTotalPoints:0
       };
     });
 
@@ -1307,8 +1329,11 @@ window.recalcRatings=async function(){
         teamStates[t.id].wins=t.lockedWins??0;
         teamStates[t.id].losses=t.lockedLosses??0;
         teamStates[t.id].seasonGames=t.lockedSeasonGames??0;
+        teamStates[t.id].lifetimeWins=t.lockedLifetimeWins??0;
+        teamStates[t.id].lifetimeLosses=t.lockedLifetimeLosses??0;
         teamStates[t.id].lifetimeGames=t.lockedLifetimeGames??0;
         teamStates[t.id].totalPoints=t.lockedTotalPoints??0;
+        teamStates[t.id].lifetimeTotalPoints=t.lockedLifetimeTotalPoints??0;
       });
     }
 
@@ -1339,9 +1364,11 @@ window.recalcRatings=async function(){
       ws.rating+=deltaS; ls.rating-=deltaS;
       ws.lifetimeRating+=deltaL; ls.lifetimeRating-=deltaL;
       ws.wins++; ls.losses++;
+      ws.lifetimeWins++; ls.lifetimeLosses++;
       ws.seasonGames++; ls.seasonGames++;
       ws.lifetimeGames++; ls.lifetimeGames++;
       ws.totalPoints+=scoreW; ls.totalPoints+=scoreL;
+      ws.lifetimeTotalPoints+=scoreW; ls.lifetimeTotalPoints+=scoreL;
     }
 
     // Write all team updates in batches of 400 ops
@@ -1352,8 +1379,9 @@ window.recalcRatings=async function(){
         rating:parseFloat(state.rating.toFixed(5)),
         lifetimeRating:parseFloat(state.lifetimeRating.toFixed(5)),
         wins:state.wins, losses:state.losses,
+        lifetimeWins:state.lifetimeWins, lifetimeLosses:state.lifetimeLosses,
         seasonGames:state.seasonGames, lifetimeGames:state.lifetimeGames,
-        totalPoints:state.totalPoints,
+        totalPoints:state.totalPoints, lifetimeTotalPoints:state.lifetimeTotalPoints,
         seasonYear:new Date().getFullYear()
       }});
     }
@@ -1380,33 +1408,62 @@ window.recalcRatings=async function(){
 };
 
 // ── Lock current stats as cutoff baseline ─────────────────────────────────────
-// Called automatically when cutoff date is saved — snapshots current stats as the locked baseline
-async function lockStatsAsBaseline(){
+// Replays all matches up to and including newCutoff from scratch to get a clean baseline.
+async function lockStatsAsBaseline(newCutoff){
   try{
+    const lockedStates={};
+    teams.forEach(t=>{
+      lockedStates[t.id]={
+        rating:RECALC_RAW_CENTER, lifetimeRating:RECALC_RAW_CENTER,
+        wins:0, losses:0, seasonGames:0,
+        lifetimeWins:0, lifetimeLosses:0, lifetimeGames:0,
+        totalPoints:0, lifetimeTotalPoints:0
+      };
+    });
+
+    const cutoffMatches=[...matches]
+      .filter(m=>m.date&&m.date<=newCutoff)
+      .sort((a,b)=>a.timestamp&&b.timestamp?a.timestamp-b.timestamp:(a.date<b.date?-1:1));
+
+    for(const m of cutoffMatches){
+      const ws=lockedStates[m.winner], ls=lockedStates[m.loser];
+      if(!ws||!ls) continue;
+      const deltaS=recalcDelta(ws.rating,ls.rating,m.scoreW??0,m.scoreL??0);
+      const deltaL=recalcDelta(ws.lifetimeRating,ls.lifetimeRating,m.scoreW??0,m.scoreL??0);
+      ws.rating+=deltaS; ls.rating-=deltaS;
+      ws.lifetimeRating+=deltaL; ls.lifetimeRating-=deltaL;
+      ws.wins++; ls.losses++;
+      ws.lifetimeWins++; ls.lifetimeLosses++;
+      ws.seasonGames++; ls.seasonGames++;
+      ws.lifetimeGames++; ls.lifetimeGames++;
+      ws.totalPoints+=(m.scoreW??0); ls.totalPoints+=(m.scoreL??0);
+      ws.lifetimeTotalPoints+=(m.scoreW??0); ls.lifetimeTotalPoints+=(m.scoreL??0);
+    }
+
     const b=writeBatch(db);
     teams.forEach(t=>{
+      const s=lockedStates[t.id];
       b.update(doc(db,'teams',t.id),{
-        lockedRating:t.rating??RECALC_RAW_CENTER,
-        lockedLifetimeRating:t.lifetimeRating??t.rating??RECALC_RAW_CENTER,
-        lockedWins:t.wins??0, lockedLosses:t.losses??0,
-        lockedSeasonGames:t.seasonGames??0, lockedLifetimeGames:t.lifetimeGames??0,
-        lockedTotalPoints:t.totalPoints??0
+        lockedRating:parseFloat(s.rating.toFixed(5)),
+        lockedLifetimeRating:parseFloat(s.lifetimeRating.toFixed(5)),
+        lockedWins:s.wins, lockedLosses:s.losses,
+        lockedLifetimeWins:s.lifetimeWins, lockedLifetimeLosses:s.lifetimeLosses,
+        lockedSeasonGames:s.seasonGames, lockedLifetimeGames:s.lifetimeGames,
+        lockedTotalPoints:s.totalPoints, lockedLifetimeTotalPoints:s.lifetimeTotalPoints
       });
     });
     await b.commit();
   }catch(e){ console.warn('lockStatsAsBaseline error',e); }
 }
 
-// Override saveCutoffDate to also lock stats
-const _origSave=window.saveCutoffDate;
 window.saveCutoffDate=async function(){
   const val=document.getElementById('cutoff-date')?.value;
   if(!val){ toast('Pick a date',true); return; }
-  if(!confirm(`Set cutoff to ${val}? This will snapshot current team stats as the baseline. Recalculation will only replay matches after this date.`)) return;
+  if(!confirm(`Set cutoff to ${val}? This will snapshot stats as of that date as the baseline. Recalculation will only replay matches after this date.`)) return;
   try{
     await setDoc(doc(db,'settings','recalc'),{cutoffDate:val},{merge:true});
     cutoffDate=val;
-    await lockStatsAsBaseline();
+    await lockStatsAsBaseline(val);
     const st=document.getElementById('cutoff-status');
     if(st) st.textContent=`Cutoff saved: ${val} — stats locked. Recalculate to replay matches after this date.`;
     toast('Cutoff date saved & stats locked!');
@@ -1571,6 +1628,28 @@ window.downloadMatchesCSV=function(league){
 };
 
 // ── MATCHES CSV UPLOAD ────────────────────────────────────────────────────────
+// Normalize various date formats → YYYY-MM-DD
+// Handles: YYYY-MM-DD, M-D-YYYY, MM/DD/YYYY, M/D/YYYY, YYYY/MM/DD
+function normalizeDate(raw){
+  if(!raw) return '';
+  raw=raw.trim();
+  // Already YYYY-MM-DD
+  if(/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  // M-D-YYYY or MM-DD-YYYY
+  const mdy=raw.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if(mdy) return `${mdy[3]}-${mdy[1].padStart(2,'0')}-${mdy[2].padStart(2,'0')}`;
+  // M/D/YYYY or MM/DD/YYYY
+  const mdySlash=raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(mdySlash) return `${mdySlash[3]}-${mdySlash[1].padStart(2,'0')}-${mdySlash[2].padStart(2,'0')}`;
+  // YYYY/MM/DD
+  const ymdSlash=raw.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+  if(ymdSlash) return `${ymdSlash[1]}-${ymdSlash[2]}-${ymdSlash[3]}`;
+  // YYYY-M-D (padded)
+  const ymd=raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(ymd) return `${ymd[1]}-${ymd[2].padStart(2,'0')}-${ymd[3].padStart(2,'0')}`;
+  return raw; // return as-is if unrecognized, let Firestore deal with it
+}
+
 window.handleMatchesCSV=async function(file){
   if(!file) return;
   const text=await file.text();
@@ -1596,8 +1675,19 @@ window.handleMatchesCSV=async function(file){
   const nameLookup={};
   teams.forEach(t=>{ nameLookup[t.name.toLowerCase()]=t; });
 
-  // Build set of existing matches to detect duplicates: "date|wId|lId|scoreW|scoreL"
-  const existingKeys=new Set(matches.map(m=>`${m.date||''}|${m.winner||''}|${m.loser||''}|${m.scoreW??''}|${m.scoreL??''}`));
+  // Build a count map of existing matches keyed by "date|teamPair|scoreW|scoreL"
+  // teamPair is always sorted so A-vs-B and B-vs-A hash the same
+  function matchKey(date, id1, id2, sw, sl){
+    const pair=[id1,id2].sort().join('|');
+    return `${date||''}||${pair}||${sw}||${sl}`;
+  }
+  const existingCounts=new Map();
+  matches.forEach(m=>{
+    const k=matchKey(m.date,m.winner,m.loser,m.scoreW??'',m.scoreL??'');
+    existingCounts.set(k,(existingCounts.get(k)||0)+1);
+  });
+  // Track how many we've imported this session for each key
+  const importedCounts=new Map();
 
   let imported=0, dupes=0, errors=0;
   const logLines=[];
@@ -1609,7 +1699,7 @@ window.handleMatchesCSV=async function(file){
     const lName=(row.loser_name||'').trim();
     const scoreW=parseInt(row.score_winner);
     const scoreL=parseInt(row.score_loser);
-    const date=(row.date||'').trim();
+    const date=normalizeDate((row.date||'').trim());
 
     if(!wName||!lName||isNaN(scoreW)||isNaN(scoreL)){
       errors++;
@@ -1628,15 +1718,22 @@ window.handleMatchesCSV=async function(file){
     if(wTeam.id===lTeam.id){ errors++; logLines.push(`<span class="csv-err">❌ Same team for both sides: "${wName}"</span>`); continue; }
     if(scoreW<scoreL){ errors++; logLines.push(`<span class="csv-err">❌ Winner score < loser score: ${wName} ${scoreW}–${scoreL}</span>`); continue; }
 
-    // Dupe check — include scores so same-day rematches between the same pair aren't dropped
-    const dupeKey=`${date}|${wTeam.id}|${lTeam.id}|${scoreW}|${scoreL}`;
-    const dupeKeyRev=`${date}|${lTeam.id}|${wTeam.id}|${scoreL}|${scoreW}`;
-    if(existingKeys.has(dupeKey)||existingKeys.has(dupeKeyRev)){
+    // Count-aware dupe check:
+    // Track how many times this exact matchup (date+teams+score) appears in the DB.
+    // For each CSV row, skip it only if we've already "used up" all the existing DB occurrences.
+    // This means: 1 in DB + 3 in CSV → skip 1, import 2 new ones.
+    const k=matchKey(date, wTeam.id, lTeam.id, scoreW, scoreL);
+    const alreadyInDB=existingCounts.get(k)||0;
+    const seenThisRun=importedCounts.get(k)||0;
+    if(seenThisRun < alreadyInDB){
+      // This occurrence is covered by an existing DB record — skip
+      importedCounts.set(k, seenThisRun+1);
       dupes++;
-      logLines.push(`<span class="csv-warn">⚠ Duplicate skipped: ${wName} vs ${lName} on ${date}</span>`);
+      logLines.push(`<span class="csv-warn">⚠ Already exists, skipped: ${wName} ${scoreW}–${scoreL} ${lName}${date?' on '+date:''} (${seenThisRun+1}/${alreadyInDB})</span>`);
       continue;
     }
-    existingKeys.add(dupeKey);
+    // New occurrence — allow it and track it
+    importedCounts.set(k, seenThisRun+1);
 
     // Resolve home team if column present
     const homeTeamName=(row.home_team||'').trim();
@@ -1662,8 +1759,8 @@ window.handleMatchesCSV=async function(file){
       forfeitingTeam:isForfeit?lTeam.id:null,
       ratingDelta:'0',
       ratingChanges:{},
-      flagCaughtA:row.flag_caught_winner==='true',
-      flagCaughtB:row.flag_caught_loser==='true',
+      flagCaughtA:(row.flag_caught_winner||'').toLowerCase()==='true',
+      flagCaughtB:(row.flag_caught_loser||'').toLowerCase()==='true',
       setScore:row.set_score?parseInt(row.set_score):80,
       timestamp:date?new Date(date+'T12:00:00').getTime():Date.now(),
       importedBy:currentUser?.uid||null,
@@ -1695,12 +1792,20 @@ window.handleMatchesCSV=async function(file){
 
 // ── Season Reset ──────────────────────────────────────────────────────────────
 window.resetSeason=async function(){
-  if(!confirm('Reset all season ratings to 5.000 and clear season W/L/GP? Lifetime data is kept.')) return;
+  if(!confirm('Reset all season ratings to 5.000 and clear season W/L/GP?\n\nLifetime games, points, wins, and losses are preserved.')) return;
   try{
     const batch=writeBatch(db);
-    teams.forEach(t=>{ batch.update(doc(db,'teams',t.id),{rating:RAW_CENTER,wins:0,losses:0,seasonGames:0,totalPoints:0,seasonYear:new Date().getFullYear()}); });
+    teams.forEach(t=>{
+      batch.update(doc(db,'teams',t.id),{
+        rating:RAW_CENTER,
+        wins:0, losses:0,
+        seasonGames:0, totalPoints:0,
+        seasonYear:new Date().getFullYear()
+        // lifetimeGames, lifetimeRating, lifetimeWins, lifetimeLosses, lifetimeTotalPoints intentionally NOT reset
+      });
+    });
     await batch.commit();
-    toast('Season reset! All teams start at 5.000');
+    toast('Season reset! All teams start at 5.000. Lifetime stats preserved.');
   }catch(e){ toast('Error: '+e.message,true); }
 };
 
