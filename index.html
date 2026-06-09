@@ -69,22 +69,35 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
 .prb{margin-left:auto;text-align:right}
 .rbn{font-family:var(--fd);font-size:48px;font-weight:800;color:var(--accent);line-height:1}
 .rbl{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.6px}
-.pstats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.pstats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .pstat{text-align:center;background:var(--bg3);border-radius:8px;padding:12px}
 .psv{font-family:var(--fd);font-size:26px;font-weight:700}
 .psl{font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
 /* MATCH HISTORY */
 .mh{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);overflow:hidden}
-.mhh{padding:14px 20px;border-bottom:1px solid var(--border);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
-.mr{display:flex;align-items:center;gap:12px;padding:12px 20px;border-top:1px solid var(--border);font-size:13px}
+.mhh{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.mhh-title{font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.mh-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mh-search{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-family:var(--fb);font-size:12px;color:var(--text);outline:none;width:140px;transition:border-color .15s}
+.mh-search:focus{border-color:var(--accent)}
+.mh-search::placeholder{color:var(--muted)}
+.mh-sort{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-family:var(--fb);font-size:12px;color:var(--text);outline:none;cursor:pointer}
+.mh-sort:focus{border-color:var(--accent)}
+.mh-filter{background:none;border:1px solid var(--border);border-radius:16px;padding:4px 12px;font-family:var(--fb);font-size:12px;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap}
+.mh-filter:hover{border-color:var(--accent);color:var(--accent)}
+.mh-filter.active{background:rgba(200,168,75,0.12);border-color:var(--accent);color:var(--accent)}
+.mr{display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--border);font-size:13px;flex-wrap:wrap}
 .mres{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
 .mres.W{background:rgba(61,191,122,0.15);color:var(--success)}
 .mres.L{background:rgba(226,75,75,0.15);color:var(--danger)}
 .mscore{font-weight:700;min-width:60px;font-family:var(--fd);font-size:16px;letter-spacing:.5px}
-.mopp{color:var(--muted);flex:1;font-size:13px}
-.md{font-weight:700;min-width:56px;text-align:right;font-size:13px}
+.mopp{color:var(--muted);flex:1;font-size:13px;min-width:80px}
+.md{font-weight:700;min-width:52px;text-align:right;font-size:12px}
 .md.pos{color:var(--success)}.md.neg{color:var(--danger)}
-.mdate{color:var(--muted);font-size:12px;min-width:80px;text-align:right}
+.mrating-changes{display:flex;flex-direction:column;gap:2px;align-items:flex-end;min-width:80px}
+.mrc-row{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600}
+.mrc-lbl{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.3px;width:46px;text-align:right}
+.mdate{color:var(--muted);font-size:11px;min-width:72px;text-align:right}
 /* FORMS */
 .sf{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);padding:28px}
 .fst{font-family:var(--fd);font-size:20px;font-weight:800;letter-spacing:1px;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);text-transform:uppercase}
@@ -157,7 +170,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
 .fc-name{font-weight:700;font-size:13px;line-height:1.2}
 .fc-league{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
 /* LIFETIME STATS HORIZONTAL */
-.lifetime-hrow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
+.lifetime-hrow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
 .lifetime-hrow .sc{padding:12px 14px}
 .lifetime-hrow .sv{font-size:22px}
 @media(max-width:600px){.lifetime-hrow{grid-template-columns:repeat(3,1fr)}.followed-cards{grid-template-columns:repeat(2,1fr)}}
@@ -368,6 +381,7 @@ let indexCurrentUser=null, indexUserProfile=null;
 
 onSnapshot(collection(db,'teams'), snap=>{
   teams=snap.docs.map(d=>({id:d.id,...d.data()}));
+  if(window._teamMatchesData) window._teamMatchesData.teams=teams;
   refreshActive();
 });
 function normalizeDate(raw){
@@ -392,6 +406,17 @@ onSnapshot(collection(db,'matches'), snap=>{
     if(a.timestamp&&b.timestamp) return a.timestamp-b.timestamp;
     return (a.date||'')<(b.date||'')?-1:1;
   });
+  if(window._teamMatchesData){
+    const tid=window._teamMatchesData.teamId;
+    window._teamMatchesData.matches=matches.filter(m=>m.teamA===tid||m.teamB===tid||m.winner===tid||m.loser===tid)
+      .sort((a,b)=>{
+        const da=a.date||'', db=b.date||'';
+        if(db!==da) return db<da?-1:db>da?1:0;
+        if(a.timestamp&&b.timestamp) return b.timestamp-a.timestamp;
+        return 0;
+      });
+    if(typeof window._renderMhRows==='function') window._renderMhRows();
+  }
   refreshActive();
 });
 onSnapshot(collection(db,'events'), snap=>{
@@ -683,21 +708,29 @@ window.renderTeamStats=function(){
   const gp=t.seasonGames||0;
   const w=t.wins||0, l=t.losses||0;
   const pts=t.totalPoints||0;
-  const ppg=gp>0?(pts/gp).toFixed(1):'—';
+  const ppg=gp>0?Math.round(pts/gp):'—';
 
   // Lifetime stats — written directly by recalc
   const lw    = t.lifetimeWins    ?? t.wins    ?? 0;
   const ll    = t.lifetimeLosses  ?? t.losses  ?? 0;
   const lgames = t.lifetimeGames  ?? gp;
   const lpts  = t.lifetimeTotalPoints ?? t.totalPoints ?? pts;
-  const lppg = lgames>0 ? (lpts/lgames).toFixed(1) : '—';
+  const lppg = lgames>0 ? Math.round(lpts/lgames) : '—';
   const flagCatch=t.flagCatchPct!=null?parseFloat(t.flagCatchPct).toFixed(1)+'%':'—';
   const leagueBadge=leagueBadgeHTML(t.league);
   const nameColor=teamColor(t);
   const styledName=nameColor?`<span style="color:${nameColor}">${t.name}</span>`:t.name;
 
+  // All team matches sorted by date desc, then by timestamp if same day
   const teamMatches=matches.filter(m=>m.teamA===id||m.teamB===id||m.winner===id||m.loser===id)
-    .sort((a,b)=>(b.date||'') < (a.date||'')?-1:(b.date||'')>(a.date||'')?1:0).slice(0,20);
+    .sort((a,b)=>{
+      const da=a.date||'', db=b.date||'';
+      if(db!==da) return db<da?-1:db>da?1:0;
+      if(a.timestamp&&b.timestamp) return b.timestamp-a.timestamp;
+      return 0;
+    });
+  // State for match list filter/sort
+  let _mhFilter='all', _mhSort='date-desc', _mhSearch='';
 
   container.innerHTML=`
     <div class="pp">
@@ -713,8 +746,7 @@ window.renderTeamStats=function(){
         </div>
       </div>
       <div class="pstats">
-        <div class="pstat"><div class="psv" style="color:var(--success)">${w}</div><div class="psl">Wins</div></div>
-        <div class="pstat"><div class="psv" style="color:var(--danger)">${l}</div><div class="psl">Losses</div></div>
+        <div class="pstat"><div class="psv" style="color:var(--accent)">${w}–${l}</div><div class="psl">W–L (Season)</div></div>
         <div class="pstat"><div class="psv">${gp}</div><div class="psl">Games (Season)</div></div>
         <div class="pstat"><div class="psv" style="color:var(--accent)">${ppg}</div><div class="psl">Pts/Game</div></div>
       </div>
@@ -722,38 +754,132 @@ window.renderTeamStats=function(){
     <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Lifetime Stats</div>
     <div class="lifetime-hrow">
       <div class="sc"><div class="sl">Rating</div><div class="sv gold">${lr}</div></div>
-      <div class="sc"><div class="sl">Wins</div><div class="sv" style="color:var(--success)">${lw}</div></div>
-      <div class="sc"><div class="sl">Losses</div><div class="sv" style="color:var(--danger)">${ll}</div></div>
+      <div class="sc"><div class="sl">W–L</div><div class="sv" style="color:var(--accent)">${lw}–${ll}</div></div>
       <div class="sc"><div class="sl">Games</div><div class="sv">${lgames}</div></div>
       <div class="sc"><div class="sl">Pts/Game</div><div class="sv" style="color:var(--accent)">${lppg}</div></div>
     </div>
     ${t.flagCatchPct!=null?`<div class="sc" style="margin-bottom:20px;display:inline-block;min-width:160px"><div class="sl">🚩 Flag Catch %</div><div class="sv" style="color:var(--accent)">${flagCatch}</div></div>`:''}
-    <div class="mh">
-      <div class="mhh">Recent Matches</div>
-      ${teamMatches.length?teamMatches.map(m=>{
-        const isWin=(m.winner===id);
-        const oppId=m.winner===id?m.loser:m.winner;
-        const opp=teams.find(x=>x.id===oppId);
-        const myScore=m.winner===id?m.scoreW:m.scoreL;
-        const theirScore=m.winner===id?m.scoreL:m.scoreW;
-        const delta=m.ratingChanges?.[id];
-        const ds=delta!=null?(delta>0?'+':'')+parseFloat(delta).toFixed(2):null;
-        const isHome=m.homeTeam===id;
-        const isAway=m.awayTeam===id;
-        const haTag=isHome?`<span style="font-size:10px;color:var(--success);font-weight:700">🏠</span>`:isAway?`<span style="font-size:10px;color:var(--muted);font-weight:700">✈</span>`:'';
-        const ffTag=m.forfeit?`<span style="font-size:10px;font-weight:700;color:var(--danger)">FF</span>`:'';
-        const oppColor=teamColor(opp);
-        const oppNameStyled=oppColor?`<span style="color:${oppColor}">${opp?.name||'Opponent'}</span>`:(opp?.name||'Opponent');
-        return`<div class="mr">
-          <div class="mres ${isWin?'W':'L'}">${isWin?'W':'L'}</div>
-          <div class="mscore">${myScore??'—'} – ${theirScore??'—'}</div>
-          <div class="mopp">vs ${oppNameStyled}${haTag?` ${haTag}`:''}</div>
-          ${ffTag?`<div style="align-self:center">${ffTag}</div>`:''}
-          ${ds?`<div class="md ${parseFloat(delta)>0?'pos':'neg'}">${ds}</div>`:''}
-          <div class="mdate">${m.date||''}</div>
-        </div>`;
-      }).join(''):'<div class="es">No matches recorded yet.</div>'}
+    <div class="mh" id="team-mh">
+      <div class="mhh">
+        <span class="mhh-title">All Matches <span id="mh-count" style="font-size:11px;opacity:.6"></span></span>
+        <div class="mh-controls">
+          <input class="mh-search" id="mh-search" type="text" placeholder="Search opponent…" oninput="window._mhSearchChange(this.value)">
+          <button class="mh-filter active" id="mhf-all"   onclick="window._mhSetFilter('all',this)">All</button>
+          <button class="mh-filter"        id="mhf-W"     onclick="window._mhSetFilter('W',this)">Wins</button>
+          <button class="mh-filter"        id="mhf-L"     onclick="window._mhSetFilter('L',this)">Losses</button>
+          <select class="mh-sort" id="mh-sort" onchange="window._mhSetSort(this.value)">
+            <option value="date-desc">Date ↓</option>
+            <option value="date-asc">Date ↑</option>
+            <option value="score-desc">Score ↓</option>
+            <option value="score-asc">Score ↑</option>
+          </select>
+        </div>
+      </div>
+      <div id="mh-rows"></div>
     </div>`;
+
+  // Attach live filter/sort/search handlers scoped to this team
+  window._mhFilter='all'; window._mhSort='date-desc'; window._mhSearch='';
+  window._mhSetFilter=function(f,btn){
+    window._mhFilter=f;
+    document.querySelectorAll('.mh-filter').forEach(b=>b.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+    window._renderMhRows();
+  };
+  window._mhSetSort=function(s){ window._mhSort=s; window._renderMhRows(); };
+  window._mhSearchChange=function(v){ window._mhSearch=v.toLowerCase(); window._renderMhRows(); };
+
+  // Store team match data in closure-accessible var
+  window._teamMatchesData={matches:teamMatches, teamId:id, teams};
+
+  window._renderMhRows=function(){
+    const {matches:allM, teamId, teams:allT}=window._teamMatchesData||{};
+    if(!allM) return;
+    const rowsEl=document.getElementById('mh-rows');
+    const countEl=document.getElementById('mh-count');
+    if(!rowsEl) return;
+
+    let list=[...allM];
+
+    // Filter W/L
+    if(window._mhFilter==='W') list=list.filter(m=>m.winner===teamId);
+    else if(window._mhFilter==='L') list=list.filter(m=>m.loser===teamId);
+
+    // Search
+    if(window._mhSearch){
+      list=list.filter(m=>{
+        const oppId=m.winner===teamId?m.loser:m.winner;
+        const opp=allT.find(x=>x.id===oppId);
+        return (opp?.name||'').toLowerCase().includes(window._mhSearch)||
+               (m.date||'').includes(window._mhSearch);
+      });
+    }
+
+    // Sort
+    if(window._mhSort==='date-asc') list.sort((a,b)=>{
+      const da=a.date||'', db=b.date||'';
+      if(da!==db) return da<db?-1:1;
+      if(a.timestamp&&b.timestamp) return a.timestamp-b.timestamp;
+      return 0;
+    });
+    else if(window._mhSort==='date-desc') list.sort((a,b)=>{
+      const da=a.date||'', db=b.date||'';
+      if(da!==db) return da<db?1:-1;
+      if(a.timestamp&&b.timestamp) return b.timestamp-a.timestamp;
+      return 0;
+    });
+    else if(window._mhSort==='score-desc') list.sort((a,b)=>{
+      const sa=(a.winner===teamId?a.scoreW:a.scoreL)||0;
+      const sb=(b.winner===teamId?b.scoreW:b.scoreL)||0;
+      return sb-sa;
+    });
+    else if(window._mhSort==='score-asc') list.sort((a,b)=>{
+      const sa=(a.winner===teamId?a.scoreW:a.scoreL)||0;
+      const sb=(b.winner===teamId?b.scoreW:b.scoreL)||0;
+      return sa-sb;
+    });
+
+    if(countEl) countEl.textContent=list.length?`(${list.length})`:'';
+
+    if(!list.length){ rowsEl.innerHTML=`<div class="es">No matches found.</div>`; return; }
+
+    rowsEl.innerHTML=list.map(m=>{
+      const isWin=(m.winner===teamId);
+      const oppId=m.winner===teamId?m.loser:m.winner;
+      const opp=allT.find(x=>x.id===oppId);
+      const myScore=m.winner===teamId?m.scoreW:m.scoreL;
+      const theirScore=m.winner===teamId?m.scoreL:m.scoreW;
+      // Season delta
+      const delta=m.ratingChanges?.[teamId];
+      const ds=delta!=null?(delta>0?'+':'')+parseFloat(delta).toFixed(3):null;
+      // Lifetime delta
+      const ldelta=m.lifetimeRatingChanges?.[teamId];
+      const lds=ldelta!=null?(ldelta>0?'+':'')+parseFloat(ldelta).toFixed(3):null;
+      const isHome=m.homeTeam===teamId;
+      const isAway=m.awayTeam===teamId;
+      const haTag=isHome?`<span style="font-size:10px;color:var(--success);font-weight:700">🏠</span>`:isAway?`<span style="font-size:10px;color:var(--muted);font-weight:700">✈</span>`:'';
+      const ffTag=m.forfeit?`<span style="font-size:10px;font-weight:700;color:var(--danger)">FF</span>`:'';
+      const oppColor=teamColor(opp);
+      const oppNameStyled=oppColor?`<span style="color:${oppColor}">${opp?.name||'Opponent'}</span>`:(opp?.name||'Opponent');
+      // Build rating changes column
+      let ratingCol='';
+      if(ds||lds){
+        ratingCol=`<div class="mrating-changes">
+          ${ds?`<div class="mrc-row"><span class="mrc-lbl">Season</span><span class="md ${parseFloat(delta)>0?'pos':'neg'}">${ds}</span></div>`:''}
+          ${lds?`<div class="mrc-row"><span class="mrc-lbl">Lifetime</span><span class="md ${parseFloat(ldelta)>0?'pos':'neg'}">${lds}</span></div>`:''}
+        </div>`;
+      }
+      return`<div class="mr">
+        <div class="mres ${isWin?'W':'L'}">${isWin?'W':'L'}</div>
+        <div class="mscore">${myScore??'—'} – ${theirScore??'—'}</div>
+        <div class="mopp">vs ${oppNameStyled}${haTag?` ${haTag}`:''}</div>
+        ${ffTag?`<div style="align-self:center">${ffTag}</div>`:''}
+        ${ratingCol}
+        <div class="mdate">${m.date||''}</div>
+      </div>`;
+    }).join('');
+  };
+  window._renderMhRows();
 };
 
 // ── Calendar ──────────────────────────────────────────────────────────────────
