@@ -1390,11 +1390,10 @@ window.recalcRatings=async function(){
         lifetimeRatingChanges:{[wId]:deltaL,[lId]:-deltaL}
       };
 
-      ws.rating+=deltaS; ls.rating-=deltaS;
-      ws.lifetimeRating+=deltaL; ls.lifetimeRating-=deltaL;
-      // Season stats only for matches on/after the season start date
+      // Season stats and rating only for matches on/after the season start date
       const inSeason=!sd||(m.date&&m.date>=sd);
-      if(inSeason){ ws.wins++; ls.losses++; ws.seasonGames++; ls.seasonGames++; ws.totalPoints+=scoreW; ls.totalPoints+=scoreL; }
+      if(inSeason){ ws.rating+=deltaS; ls.rating-=deltaS; ws.wins++; ls.losses++; ws.seasonGames++; ls.seasonGames++; ws.totalPoints+=scoreW; ls.totalPoints+=scoreL; }
+      ws.lifetimeRating+=deltaL; ls.lifetimeRating-=deltaL;
       ws.lifetimeWins++; ls.lifetimeLosses++;
       ws.lifetimeGames++; ls.lifetimeGames++;
       ws.lifetimeTotalPoints+=scoreW; ls.lifetimeTotalPoints+=scoreL;
