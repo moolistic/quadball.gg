@@ -277,6 +277,19 @@ select:focus,input:focus,textarea:focus{border-color:var(--accent)}
         </div>
         <div id="cutoff-status" style="font-size:12px;color:var(--muted)"></div>
       </div>
+      <div class="admin-row" style="flex-direction:column;align-items:flex-start;gap:12px">
+        <div class="admin-row-info">
+          <strong>Season Start Date</strong>
+          <span>Matches on or after this date count toward season W/L/GP. Matches between the cutoff and this date are replayed for rating purposes only.</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;width:100%;flex-wrap:wrap">
+          <div style="flex:1;min-width:180px">
+            <input type="date" id="season-start-date" style="margin:0">
+          </div>
+          <button class="icon-btn" onclick="saveSeasonStartDate()">Save Season Start</button>
+        </div>
+        <div id="season-start-status" style="font-size:12px;color:var(--muted)"></div>
+      </div>
       <div class="admin-row" style="flex-direction:column;align-items:flex-start;gap:8px">
         <div class="admin-row-info">
           <strong>Recalculate Ratings From Cutoff</strong>
@@ -563,6 +576,7 @@ function toast(msg,err){
 let teams=[], matches=[], users=[], admins=[], currentUser=null;
 let teamLeagueFilter='all', matchLeagueFilter='all';
 let cutoffDate='';
+let seasonStartDate='';
 let selectedMatchIds=new Set();
 
 function updateBulkBar(){
@@ -643,25 +657,35 @@ window.adminSignInGoogle=async function(){
   catch(e){ toast(e.message,true); }
 };
 
+// ── Auth cache (sessionStorage) ───────────────────────────────────────────────
+function getCachedAdminAuth(){ try{ const v=sessionStorage.getItem('qb_admin_auth'); return v?JSON.parse(v):null; }catch{ return null; } }
+function setCachedAdminAuth(email,isSuper){ try{ sessionStorage.setItem('qb_admin_auth',JSON.stringify({email,isSuper,ts:Date.now()})); }catch{} }
+function clearCachedAdminAuth(){ try{ sessionStorage.removeItem('qb_admin_auth'); }catch{} }
+
 onAuthStateChanged(auth, async user=>{
   currentUser=user;
-  if(!user){ showLock('Sign in with your admin Google account to continue.'); return; }
+  if(!user){ clearCachedAdminAuth(); showLock('Sign in with your admin Google account to continue.'); return; }
   const userEmailNormalized = (user.email || '').toLowerCase();
   const isSuper = userEmailNormalized === SUPER_ADMIN.toLowerCase();
-  let isAdmin = isSuper;
-if(!isAdmin){
+
+  // Check cache first (valid for 30 min) to skip the Firestore round-trip
+  const cached=getCachedAdminAuth();
+  const cacheValid=cached&&cached.email===userEmailNormalized&&(Date.now()-cached.ts)<30*60*1000;
+
+  let isAdmin = isSuper || (cacheValid ? true : false);
+  if(!isAdmin && !cacheValid){
     try{
       const snap=await getDoc(doc(db,'settings','admins'));
-      if (snap.exists()) {
+      if(snap.exists()){
         const emailList = snap.data().emails || [];
-        // Map the database list to lowercase to guarantee a foolproof match
         isAdmin = emailList.map(e => String(e).toLowerCase()).includes(userEmailNormalized);
       }
     }catch(e){
       console.error("Error fetching admin list:", e);
     }
   }
-  if(!isAdmin){ showLock(`Access denied. ${user.email} is not an admin.`,'signout'); return; }
+  if(!isAdmin){ clearCachedAdminAuth(); showLock(`Access denied. ${user.email} is not an admin.`,'signout'); return; }
+  setCachedAdminAuth(userEmailNormalized, isSuper);
   if(isSuper) await ensureSuperAdmin();
   document.getElementById('admin-lock').style.display='none';
   document.getElementById('admin-content').style.display='';
@@ -1265,27 +1289,30 @@ window.previewLogo=function(){
 async function loadCutoffDate(){
   try{
     const snap=await getDoc(doc(db,'settings','recalc'));
-    if(snap.exists()&&snap.data().cutoffDate){
-      cutoffDate=snap.data().cutoffDate;
-    } else {
-      cutoffDate='2010-01-01';
-    }
+    const data=snap.exists()?snap.data():{};
+    cutoffDate=data.cutoffDate||'2010-01-01';
+    seasonStartDate=data.seasonStartDate||'';
     const el=document.getElementById('cutoff-date');
     if(el) el.value=cutoffDate;
     const st=document.getElementById('cutoff-status');
     if(st) st.textContent=`Current cutoff: ${cutoffDate} — matches after this date will be replayed.`;
+    const sel=document.getElementById('season-start-date');
+    if(sel) sel.value=seasonStartDate;
+    const sst=document.getElementById('season-start-status');
+    if(sst) sst.textContent=seasonStartDate?`Current season start: ${seasonStartDate} — matches on or after this date count toward season stats.`:'Not set — all post-cutoff matches count toward season stats.';
   }catch(e){}
 }
 
-window.saveCutoffDate=async function(){
-  const val=document.getElementById('cutoff-date')?.value;
+
+window.saveSeasonStartDate=async function(){
+  const val=document.getElementById('season-start-date')?.value;
   if(!val){ toast('Pick a date',true); return; }
   try{
-    await setDoc(doc(db,'settings','recalc'),{cutoffDate:val},{merge:true});
-    cutoffDate=val;
-    const st=document.getElementById('cutoff-status');
-    if(st) st.textContent=`Cutoff saved: ${val} — matches after this date will be replayed.`;
-    toast('Cutoff date saved!');
+    await setDoc(doc(db,'settings','recalc'),{seasonStartDate:val},{merge:true});
+    seasonStartDate=val;
+    const sst=document.getElementById('season-start-status');
+    if(sst) sst.textContent=`Season start saved: ${val} — matches on or after this date count toward season stats.`;
+    toast('Season start date saved!');
   }catch(e){ toast('Error: '+e.message,true); }
 };
 
@@ -1305,9 +1332,11 @@ window.recalcRatings=async function(){
   if(btn){ btn.disabled=true; btn.textContent='Recalculating…'; }
   if(st) st.textContent='';
   try{
-    // Reload current cutoff
+    // Reload current cutoff and season start
     const cutoffSnap=await getDoc(doc(db,'settings','recalc'));
-    const cd=cutoffSnap.exists()?cutoffSnap.data().cutoffDate||'':cutoffDate;
+    const recalcData=cutoffSnap.exists()?cutoffSnap.data():{};
+    const cd=recalcData.cutoffDate||cutoffDate;
+    const sd=recalcData.seasonStartDate||seasonStartDate||cd;
 
     // Get all teams' locked ratings as of cutoff — start from each team's current stored values
     // Build a mutable snapshot of team ratings starting from their locked-in state
@@ -1363,11 +1392,11 @@ window.recalcRatings=async function(){
 
       ws.rating+=deltaS; ls.rating-=deltaS;
       ws.lifetimeRating+=deltaL; ls.lifetimeRating-=deltaL;
-      ws.wins++; ls.losses++;
+      // Season stats only for matches on/after the season start date
+      const inSeason=!sd||(m.date&&m.date>=sd);
+      if(inSeason){ ws.wins++; ls.losses++; ws.seasonGames++; ls.seasonGames++; ws.totalPoints+=scoreW; ls.totalPoints+=scoreL; }
       ws.lifetimeWins++; ls.lifetimeLosses++;
-      ws.seasonGames++; ls.seasonGames++;
       ws.lifetimeGames++; ls.lifetimeGames++;
-      ws.totalPoints+=scoreW; ls.totalPoints+=scoreL;
       ws.lifetimeTotalPoints+=scoreW; ls.lifetimeTotalPoints+=scoreL;
     }
 

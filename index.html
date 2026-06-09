@@ -384,6 +384,15 @@ onSnapshot(collection(db,'events'), snap=>{
   refreshActive();
 });
 
+// ── Auth cache (sessionStorage) ───────────────────────────────────────────────
+function getCachedAuth(){ try{ const v=sessionStorage.getItem('qb_auth'); return v?JSON.parse(v):null; }catch{ return null; } }
+function setCachedAuth(user,profile){ try{ sessionStorage.setItem('qb_auth',JSON.stringify({uid:user.uid,email:user.email,displayName:user.displayName,profile})); }catch{} }
+function clearCachedAuth(){ try{ sessionStorage.removeItem('qb_auth'); }catch{} }
+
+// Render nav immediately from cache so page feels instant
+const _cached=getCachedAuth();
+if(_cached) updateNavAuth(_cached,_cached.profile);
+
 onAuthStateChanged(auth, async user => {
   indexCurrentUser = user;
   indexUserProfile = null;
@@ -392,6 +401,9 @@ onAuthStateChanged(auth, async user => {
       const snap = await getDoc(doc(db,'users',user.uid));
       if(snap.exists()) indexUserProfile = snap.data();
     } catch(e){ console.warn('Profile load error', e); }
+    setCachedAuth(user, indexUserProfile);
+  } else {
+    clearCachedAuth();
   }
   updateNavAuth(user, indexUserProfile);
   const ap=document.querySelector('.page.active')?.id;
