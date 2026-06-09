@@ -1348,7 +1348,7 @@ window.recalcRatings=async function(){
     teams.forEach(t=>{
       // If no cutoff, start everyone from RAW_CENTER
       teamStates[t.id]={
-        rating: cd ? (t.lockedRating??t.rating??RECALC_RAW_CENTER) : RECALC_RAW_CENTER,
+        rating: RECALC_RAW_CENTER, // season rating always resets fresh
         lifetimeRating: cd ? (t.lockedLifetimeRating??t.lifetimeRating??t.rating??RECALC_RAW_CENTER) : RECALC_RAW_CENTER,
         wins:0, losses:0, seasonGames:0,
         lifetimeWins:0, lifetimeLosses:0, lifetimeGames:0,
@@ -1356,16 +1356,12 @@ window.recalcRatings=async function(){
       };
     });
 
-    // If cutoff set, restore locked stats too
+    // If cutoff set, restore locked lifetime stats as baseline (season always starts fresh)
     if(cd){
       teams.forEach(t=>{
-        teamStates[t.id].wins=t.lockedWins??0;
-        teamStates[t.id].losses=t.lockedLosses??0;
-        teamStates[t.id].seasonGames=t.lockedSeasonGames??0;
         teamStates[t.id].lifetimeWins=t.lockedLifetimeWins??0;
         teamStates[t.id].lifetimeLosses=t.lockedLifetimeLosses??0;
         teamStates[t.id].lifetimeGames=t.lockedLifetimeGames??0;
-        teamStates[t.id].totalPoints=t.lockedTotalPoints??0;
         teamStates[t.id].lifetimeTotalPoints=t.lockedLifetimeTotalPoints??0;
       });
     }
