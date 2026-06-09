@@ -372,7 +372,7 @@ onSnapshot(collection(db,'teams'), snap=>{
 });
 function normalizeDate(raw){
   if(!raw) return '';
-  raw=String(raw).trim().replace(/\s+\d{2}:\d{2}(:\d{2})?$/, '').trim();
+  raw=String(raw).trim().replace(/\s+\d{1,2}:\d{2}(:\d{2})?$/, '').trim();
   if(/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
   const mdy=raw.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
   if(mdy) return mdy[3]+'-'+mdy[1].padStart(2,'0')+'-'+mdy[2].padStart(2,'0');

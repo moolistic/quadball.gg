@@ -1667,7 +1667,7 @@ function normalizeDate(raw){
   if(!raw) return '';
   raw=raw.trim();
   // Strip trailing time (HH:MM or HH:MM:SS) before parsing date
-  raw=raw.replace(/\s+\d{2}:\d{2}(:\d{2})?$/, '').trim();
+  raw=raw.replace(/\s+\d{1,2}:\d{2}(:\d{2})?$/, '').trim();
   // Already YYYY-MM-DD
   if(/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
   // M-D-YYYY or MM-DD-YYYY
@@ -1735,7 +1735,7 @@ window.handleMatchesCSV=async function(file){
     const scoreW=parseInt(row.score_winner);
     const scoreL=parseInt(row.score_loser);
     const rawDate=(row.date||'').trim();
-    const timeMatch=rawDate.match(/(\d{2}:\d{2}(?::\d{2})?)\s*$/);
+    const timeMatch=rawDate.match(/(\d{1,2}:\d{2}(?::\d{2})?)\s*$/);
     const timeStr=timeMatch?timeMatch[1].slice(0,5):null; // HH:MM
     const date=normalizeDate(rawDate);
 
