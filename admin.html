@@ -1736,7 +1736,7 @@ window.handleMatchesCSV=async function(file){
     const scoreL=parseInt(row.score_loser);
     const rawDate=(row.date||'').trim();
     const timeMatch=rawDate.match(/(\d{1,2}:\d{2}(?::\d{2})?)\s*$/);
-    const timeStr=timeMatch?timeMatch[1].slice(0,5):null; // HH:MM
+    const timeStr=timeMatch?timeMatch[1].split(':').slice(0,2).map((p,i)=>i===0?p.padStart(2,'0'):p).join(':'):null; // HH:MM zero-padded
     const date=normalizeDate(rawDate);
 
     if(!wName||!lName||isNaN(scoreW)||isNaN(scoreL)){
