@@ -729,7 +729,11 @@ onSnapshot(collection(db,'teams'), snap=>{
   populateMatchTeamFilter();
 });
 onSnapshot(collection(db,'matches'), snap=>{
-  matches=snap.docs.map(d=>({id:d.id,...d.data()}));
+  matches=snap.docs.map(d=>{
+    const data=d.data();
+    if(data.date) data.date=normalizeDate(data.date);
+    return {id:d.id,...data};
+  });
   matches.sort((a,b)=>b.timestamp-a.timestamp);
   populateMatchYearFilter();
   filterMatches();

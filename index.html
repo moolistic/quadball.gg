@@ -370,8 +370,24 @@ onSnapshot(collection(db,'teams'), snap=>{
   teams=snap.docs.map(d=>({id:d.id,...d.data()}));
   refreshActive();
 });
+function normalizeDate(raw){
+  if(!raw) return '';
+  raw=String(raw).trim().replace(/\s+\d{2}:\d{2}(:\d{2})?$/, '').trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const mdy=raw.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if(mdy) return mdy[3]+'-'+mdy[1].padStart(2,'0')+'-'+mdy[2].padStart(2,'0');
+  const mdyS=raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(mdyS) return mdyS[3]+'-'+mdyS[1].padStart(2,'0')+'-'+mdyS[2].padStart(2,'0');
+  const ymd=raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(ymd) return ymd[1]+'-'+ymd[2].padStart(2,'0')+'-'+ymd[3].padStart(2,'0');
+  return raw;
+}
 onSnapshot(collection(db,'matches'), snap=>{
-  matches=snap.docs.map(d=>({id:d.id,...d.data()}));
+  matches=snap.docs.map(d=>{
+    const data=d.data();
+    if(data.date) data.date=normalizeDate(data.date);
+    return {id:d.id,...data};
+  });
   matches.sort((a,b)=>{
     if(a.timestamp&&b.timestamp) return a.timestamp-b.timestamp;
     return (a.date||'')<(b.date||'')?-1:1;
