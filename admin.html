@@ -1662,6 +1662,8 @@ window.downloadMatchesCSV=function(league){
 function normalizeDate(raw){
   if(!raw) return '';
   raw=raw.trim();
+  // Strip trailing time (HH:MM or HH:MM:SS) before parsing date
+  raw=raw.replace(/\s+\d{2}:\d{2}(:\d{2})?$/, '').trim();
   // Already YYYY-MM-DD
   if(/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
   // M-D-YYYY or MM-DD-YYYY
@@ -1728,7 +1730,10 @@ window.handleMatchesCSV=async function(file){
     const lName=(row.loser_name||'').trim();
     const scoreW=parseInt(row.score_winner);
     const scoreL=parseInt(row.score_loser);
-    const date=normalizeDate((row.date||'').trim());
+    const rawDate=(row.date||'').trim();
+    const timeMatch=rawDate.match(/(\d{2}:\d{2}(?::\d{2})?)\s*$/);
+    const timeStr=timeMatch?timeMatch[1].slice(0,5):null; // HH:MM
+    const date=normalizeDate(rawDate);
 
     if(!wName||!lName||isNaN(scoreW)||isNaN(scoreL)){
       errors++;
@@ -1791,7 +1796,7 @@ window.handleMatchesCSV=async function(file){
       flagCaughtA:(row.flag_caught_winner||'').toLowerCase()==='true',
       flagCaughtB:(row.flag_caught_loser||'').toLowerCase()==='true',
       setScore:row.set_score?parseInt(row.set_score):80,
-      timestamp:date?new Date(date+'T12:00:00').getTime():Date.now(),
+      timestamp:date?new Date(date+'T'+(timeStr||'12:00')+':00').getTime():Date.now(),
       importedBy:currentUser?.uid||null,
       importedAt:Date.now()
     };
