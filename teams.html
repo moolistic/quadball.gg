@@ -555,7 +555,10 @@ window.renderTeamStats=function(){
 // MLQ PLAYER STATS
 // ══════════════════════════════════════════════════════════════════════════════
 
-const MLQ_BASE = 'https://stats-site-hzc5gx2alq-uc.a.run.app/api';
+// Proxy URL is set by the module below once the page loads; falls back to direct.
+window._MLQ_URL = window.location.origin + '/api/mlqStats';
+
+const CURRENT_MLQ_SEASON = '2026'; // Update each new season
 const POSITIONS = ['chaser','beater','keeper','seeker'];
 const PHASES    = ['regular','championship'];
 
@@ -569,17 +572,53 @@ function qScore(row){
         +(parseFloat(row['Stops'])||0)-(parseFloat(row['Turnovers'])||0);
 }
 
+// Returns a sessionStorage cache key for a given season/phase/position combo.
+function mlqCacheKey(season, phase, pos){
+  return `mlq_cache_${season}_${phase}_${pos}`;
+}
+
 async function mlqFetch(season, phase, pos){
-  const url = `${MLQ_BASE}/${season}/players?phase=${phase}&position=${pos}&per_game=false&team=All&min_drives=0`;
-  const res = await fetch(url);
+  const isPastSeason = season !== CURRENT_MLQ_SEASON;
+
+  // For past seasons: return cached data if available (no need to re-fetch).
+  if(isPastSeason){
+    try{
+      const cached = sessionStorage.getItem(mlqCacheKey(season, phase, pos));
+      if(cached){
+        return JSON.parse(cached);
+      }
+    }catch(e){ /* sessionStorage unavailable; fall through to fetch */ }
+  }
+
+  // Build URL: use the same-origin proxy to avoid CORS issues.
+  const proxyBase = window._MLQ_URL;
+  const url = `${proxyBase}?season=${season}&phase=${phase}&position=${pos}&per_game=false&team=All&min_drives=0`;
+
+  let res;
+  try{
+    res = await fetch(url);
+  }catch(e){
+    throw new Error(`Network error – could not reach stats API (${e.message})`);
+  }
+
   if(res.status===400) return [];
   if(!res.ok) throw new Error(`HTTP ${res.status}`);
+
   const data = await res.json();
-  return (data.rows||[]).map(r=>({
+  const rows = (data.rows||[]).map(r=>({
     position: pos, phase, season,
     ...r,
     ...(pos==='chaser'?{'Q-Score': qScore(r)}:{})
   }));
+
+  // Cache past seasons in sessionStorage so they're only fetched once.
+  if(isPastSeason){
+    try{
+      sessionStorage.setItem(mlqCacheKey(season, phase, pos), JSON.stringify(rows));
+    }catch(e){ /* storage full or unavailable; silently skip caching */ }
+  }
+
+  return rows;
 }
 
 window.loadMLQ = async function(){
@@ -592,18 +631,33 @@ window.loadMLQ = async function(){
   document.getElementById('mlq-export-btn').disabled = true;
 
   try{
-    const phases    = phase==='all' ? PHASES    : [phase];
+    const phases = phase==='all' ? PHASES : [phase];
+    const isPastSeason = season !== CURRENT_MLQ_SEASON;
+
     for(const ph of phases){
       for(const pos of POSITIONS){
+        // Show a slightly different status for cached vs live fetches.
+        if(isPastSeason){
+          try{
+            const cached = sessionStorage.getItem(mlqCacheKey(season, ph, pos));
+            if(cached){
+              setMLQStatus(`Loading ${season} / ${ph} / ${pos} (cached)…`);
+              mlqAllRows.push(...JSON.parse(cached));
+              continue;
+            }
+          }catch(e){}
+        }
         setMLQStatus(`Fetching ${season} / ${ph} / ${pos}…`);
         const rows = await mlqFetch(season, ph, pos);
         mlqAllRows.push(...rows);
       }
     }
+
     // Team filter
     if(teamFil!=='All') mlqAllRows = mlqAllRows.filter(r=>r.Team===teamFil);
 
-    setMLQStatus(`${mlqAllRows.length} players loaded.`);
+    const fromCache = season !== CURRENT_MLQ_SEASON ? ' (cached)' : '';
+    setMLQStatus(`${mlqAllRows.length} players loaded${fromCache}.`);
     mlqSortCol = mlqPosFilter==='chaser' ? 'Q-Score' : 'Games Rostered';
     renderMLQTable();
     document.getElementById('mlq-export-btn').disabled = mlqAllRows.length===0;
