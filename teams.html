@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teams · Quadball League</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#C8A84B;--accent2:#7B5EA7;--bg:#0A0A0F;--bg2:#111118;--bg3:#18181F;
+  --card:#16161E;--card2:#1E1E28;--text:#E8E8F0;--muted:#6B6B80;
+  --border:rgba(255,255,255,0.07);--danger:#E24B4B;--success:#3DBF7A;
+  --fd:'Barlow Condensed',sans-serif;--fb:'Barlow',sans-serif;--rad:10px
+}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+/* NAV */
+nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:54px;position:sticky;top:0;z-index:100}
+.brand{font-family:var(--fd);font-size:22px;font-weight:900;color:var(--accent);letter-spacing:2px;margin-right:14px;white-space:nowrap;text-decoration:none}
+.brand span{color:#fff}
+.nav-links{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nb{background:none;border:none;color:rgba(255,255,255,0.5);font-family:var(--fb);font-size:13px;font-weight:600;padding:8px 12px;border-radius:6px;cursor:pointer;transition:all .15s;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;letter-spacing:.3px}
+.nb:hover{background:rgba(255,255,255,0.06);color:#fff}
+.nb.active{background:rgba(200,168,75,0.12);color:var(--accent)}
+.ham-btn{display:none;background:none;border:none;color:#fff;cursor:pointer;padding:6px;border-radius:6px;flex-shrink:0}
+.ham-menu{display:none;position:absolute;top:54px;right:0;left:0;background:#111118;z-index:300;flex-direction:column;padding:6px 8px;gap:2px;box-shadow:0 8px 32px rgba(0,0,0,.6);border-bottom:1px solid var(--border)}
+.ham-menu.open{display:flex}
+.ham-menu .nb{text-align:left;width:100%;border-radius:6px;font-size:14px;padding:10px 14px}
+/* LAYOUT */
+.page-wrap{padding:28px 24px;max-width:960px;margin:0 auto;width:100%}
+.ph{margin-bottom:24px}
+.pt{font-family:var(--fd);font-size:40px;font-weight:800;letter-spacing:1.5px;line-height:1;text-transform:uppercase}
+.ps{color:var(--muted);font-size:13px;margin-top:5px;font-weight:500;letter-spacing:.3px}
+/* MAIN TABS (FCL / MLQ) */
+.main-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.main-tab{background:none;border:none;border-bottom:2px solid transparent;padding:10px 20px;font-family:var(--fd);font-size:16px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;transition:all .15s;margin-bottom:-1px}
+.main-tab:hover{color:var(--text)}
+.main-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.main-panel{display:none}
+.main-panel.active{display:block}
+/* STAT CARDS */
+.srow{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);padding:16px}
+.sl{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.sv{font-family:var(--fd);font-size:30px;font-weight:700;letter-spacing:.5px}
+.sv.gold{color:var(--accent)}
+/* TABLES */
+.tc{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);overflow:hidden}
+.tc table{width:100%;border-collapse:collapse}
+.tc thead tr{background:var(--bg3)}
+.tc th{text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;padding:9px 14px;cursor:pointer;user-select:none;white-space:nowrap}
+.tc th:hover{color:var(--text)}
+.tc th.sort-asc::after{content:' ▲';color:var(--accent)}
+.tc th.sort-desc::after{content:' ▼';color:var(--accent)}
+.tc td{padding:10px 14px;border-top:1px solid var(--border);font-size:13px}
+.tc tbody tr:hover{background:rgba(255,255,255,0.02)}
+/* Q-Score highlight */
+.col-q{color:var(--accent);font-weight:700}
+/* FCL TEAM PROFILE */
+.pp{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);padding:24px;margin-bottom:20px}
+.ptop{display:flex;align-items:center;gap:20px;margin-bottom:20px}
+.av{width:60px;height:60px;border-radius:50%;background:rgba(200,168,75,0.1);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:22px;font-weight:800;color:var(--accent);flex-shrink:0}
+.pname{font-family:var(--fd);font-size:32px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
+.pmeta{font-size:13px;color:var(--muted);margin-top:3px}
+.prb{margin-left:auto;text-align:right}
+.rbn{font-family:var(--fd);font-size:48px;font-weight:800;color:var(--accent);line-height:1}
+.rbl{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.6px}
+.pstats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.pstat{text-align:center;background:var(--bg3);border-radius:8px;padding:12px}
+.psv{font-family:var(--fd);font-size:26px;font-weight:700}
+.psl{font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
+.lifetime-hrow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.lifetime-hrow .sc{padding:12px 14px}
+.lifetime-hrow .sv{font-size:22px}
+/* MATCH HISTORY */
+.mh{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);overflow:hidden}
+.mhh{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.mhh-title{font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.mh-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mh-search{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-family:var(--fb);font-size:12px;color:var(--text);outline:none;width:140px;transition:border-color .15s}
+.mh-search:focus{border-color:var(--accent)}
+.mh-search::placeholder{color:var(--muted)}
+.mh-sort{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-family:var(--fb);font-size:12px;color:var(--text);outline:none;cursor:pointer}
+.mh-filter{background:none;border:1px solid var(--border);border-radius:16px;padding:4px 12px;font-family:var(--fb);font-size:12px;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap}
+.mh-filter:hover{border-color:var(--accent);color:var(--accent)}
+.mh-filter.active{background:rgba(200,168,75,0.12);border-color:var(--accent);color:var(--accent)}
+.mr{display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--border);font-size:13px;flex-wrap:wrap}
+.mres{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
+.mres.W{background:rgba(61,191,122,0.15);color:var(--success)}
+.mres.L{background:rgba(226,75,75,0.15);color:var(--danger)}
+.mscore{font-weight:700;min-width:60px;font-family:var(--fd);font-size:16px;letter-spacing:.5px}
+.mopp{color:var(--muted);flex:1;font-size:13px;min-width:80px}
+.md{font-weight:700;min-width:52px;text-align:right;font-size:12px}
+.md.pos{color:var(--success)}.md.neg{color:var(--danger)}
+.mrating-changes{display:flex;flex-direction:column;gap:2px;align-items:flex-end;min-width:80px}
+.mrc-row{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600}
+.mrc-lbl{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.3px;width:46px;text-align:right}
+.mdate{color:var(--muted);font-size:11px;min-width:72px;text-align:right}
+/* CONTROLS */
+select,input[type=text]{background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:var(--fb);font-size:14px;outline:none;transition:border-color .15s}
+select:focus,input[type=text]:focus{border-color:var(--accent)}
+.psc{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);padding:20px;margin-bottom:20px}
+.psc label{font-size:12px;font-weight:700;color:var(--muted);display:block;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.psc select{width:100%}
+/* MLQ CONTROLS BAR */
+.mlq-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:20px;background:var(--card);border:1px solid var(--border);border-radius:var(--rad);padding:14px 16px}
+.mlq-bar label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-right:4px}
+.ctrl-group{display:flex;align-items:center;gap:6px}
+.btn-load{background:var(--accent);color:#000;border:none;border-radius:8px;padding:8px 18px;font-family:var(--fd);font-size:15px;font-weight:800;letter-spacing:1px;cursor:pointer;transition:background .15s}
+.btn-load:hover{background:#d4b55a}
+.btn-load:disabled{opacity:.4;cursor:not-allowed}
+.btn-export{background:none;border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-family:var(--fd);font-size:13px;font-weight:700;color:var(--accent);cursor:pointer;letter-spacing:.5px;transition:border-color .15s}
+.btn-export:hover{border-color:var(--accent)}
+.btn-export:disabled{opacity:.3;cursor:not-allowed}
+/* MLQ INNER TABS (position) */
+.pos-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.pos-tab{background:none;border:1.5px solid var(--border);border-radius:20px;padding:5px 16px;font-family:var(--fb);font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .15s}
+.pos-tab:hover{border-color:var(--accent);color:var(--accent)}
+.pos-tab.active{background:rgba(200,168,75,0.12);border-color:var(--accent);color:var(--accent)}
+/* STATUS */
+.status-bar{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:12px;min-height:22px}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.1);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* BADGES */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.badge-chaser{background:rgba(75,156,200,0.12);color:#4B9CC8}
+.badge-beater{background:rgba(200,90,75,0.12);color:#C85A4B}
+.badge-keeper{background:rgba(75,200,122,0.12);color:#4BC87A}
+.badge-seeker{background:rgba(200,168,75,0.12);color:var(--accent)}
+.team-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(200,168,75,0.08);border:1px solid rgba(200,168,75,0.2);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px}
+/* FOLLOWED */
+.followed-section{margin-bottom:24px}
+.followed-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+.followed-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.followed-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);padding:14px 16px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:6px}
+.followed-card:hover{border-color:var(--accent);background:rgba(200,168,75,0.06)}
+.fc-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:13px;font-weight:800;color:var(--accent);background:rgba(200,168,75,0.1);border:1.5px solid var(--border);flex-shrink:0;overflow:hidden}
+.fc-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.fc-name{font-weight:700;font-size:13px}
+.fc-league{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+/* MISC */
+.rp{display:inline-block;background:rgba(200,168,75,0.12);color:var(--accent);font-weight:700;font-size:12px;padding:3px 10px;border-radius:20px}
+.rn{font-family:var(--fd);font-size:20px;font-weight:700;color:var(--muted);min-width:28px;display:inline-block}
+.rn.top3{color:var(--accent)}
+.wb{display:flex;align-items:center;gap:8px}
+.wbg{flex:1;height:5px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden;max-width:80px}
+.wbf{height:100%;background:var(--accent);border-radius:4px}
+.wp{font-size:12px;color:var(--muted);min-width:36px}
+.tn{font-weight:700;color:var(--text);cursor:pointer;font-size:14px}
+.tn:hover{color:var(--accent)}
+.es{text-align:center;padding:48px 20px;color:var(--muted)}
+.loading-overlay{text-align:center;padding:60px 20px;color:var(--muted)}
+.loading-overlay .spinner{width:32px;height:32px;display:block;margin:0 auto;border-color:rgba(255,255,255,0.1);border-top-color:var(--accent)}
+.divider{height:2px;background:linear-gradient(90deg,var(--accent),transparent);border-radius:2px;margin-bottom:24px}
+.mv-up{color:var(--success);font-weight:700}
+.mv-dn{color:var(--danger);font-weight:700}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--success);color:#fff;padding:14px 22px;border-radius:10px;font-weight:700;font-size:14px;transform:translateY(80px);opacity:0;transition:all .3s ease;z-index:9999;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.err{background:var(--danger)}
+@media(max-width:600px){
+  nav{padding:0 10px}
+  .nav-links{display:none}
+  .ham-btn{display:flex;align-items:center;justify-content:center}
+  .page-wrap{padding:14px 10px}
+  .pt{font-size:28px}
+  .pstats{grid-template-columns:repeat(2,1fr)}
+  .srow,.lifetime-hrow{grid-template-columns:repeat(2,1fr)}
+  .mlq-bar{flex-direction:column;align-items:flex-start}
+  .tc th,.tc td{padding:7px 8px;font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="index.html">Q<span>.GG</span></a>
+  <div class="nav-links">
+    <a class="nb" href="index.html">Home</a>
+    <a class="nb" href="index.html#calendar">Schedule</a>
+    <a class="nb" href="index.html#rankings">Rankings</a>
+    <a class="nb" href="score.html">Enter Score</a>
+    <a class="nb active" href="teams.html">Teams</a>
+    <a class="nb" id="nav-admin-btn" href="admin.html" style="display:none">Admin</a>
+  </div>
+  <a href="profile.html" id="nav-profile-pill" style="text-decoration:none;display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:20px;padding:4px 12px 4px 5px;color:var(--text);font-size:13px;font-weight:600;white-space:nowrap;flex-shrink:0;margin-left:8px">
+    <div id="nav-av" style="width:26px;height:26px;border-radius:50%;background:rgba(200,168,75,0.15);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:11px;font-weight:800;color:var(--accent);flex-shrink:0">?</div>
+    <span id="nav-profile-name">Sign In</span>
+  </a>
+  <button class="ham-btn" id="ham-btn" onclick="toggleHam()" aria-label="Menu">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect y="4" width="22" height="2.2" rx="1.1" fill="white"/><rect y="9.9" width="22" height="2.2" rx="1.1" fill="white"/><rect y="15.8" width="22" height="2.2" rx="1.1" fill="white"/></svg>
+  </button>
+</nav>
+<div class="ham-menu" id="ham-menu">
+  <a class="nb" href="index.html">Home</a>
+  <a class="nb" href="index.html">Schedule</a>
+  <a class="nb" href="index.html">Rankings</a>
+  <a class="nb" href="score.html">Enter Score</a>
+  <a class="nb active" href="teams.html">Teams</a>
+  <a class="nb" id="ham-admin-btn" href="admin.html" style="display:none">Admin</a>
+  <a class="nb" href="profile.html">My Profile</a>
+</div>
+
+<div class="page-wrap">
+  <div class="ph">
+    <div class="pt">Teams</div>
+    <div class="ps">League standings, match history, and MLQ player stats</div>
+  </div>
+  <div class="divider"></div>
+
+  <!-- MAIN TABS -->
+  <div class="main-tabs">
+    <button class="main-tab active" onclick="switchTab('fcl',this)">FCL Teams</button>
+    <button class="main-tab" onclick="switchTab('mlq',this)">MLQ Player Stats</button>
+  </div>
+
+  <!-- ── FCL PANEL ─────────────────────────────────────────────────── -->
+  <div class="main-panel active" id="panel-fcl">
+    <div id="followed-teams-section" class="followed-section" style="display:none">
+      <div class="followed-label">⭐ Your Followed Teams</div>
+      <div class="followed-cards" id="followed-cards-grid"></div>
+    </div>
+    <div class="psc">
+      <label>Select a team</label>
+      <select id="stats-sel" onchange="renderTeamStats()"><option value="">— Choose team —</option></select>
+    </div>
+    <div id="stats-content"><div class="es" style="padding:32px 0;color:var(--muted)">Select a team above to view stats and match history.</div></div>
+  </div>
+
+  <!-- ── MLQ PANEL ─────────────────────────────────────────────────── -->
+  <div class="main-panel" id="panel-mlq">
+
+    <!-- Controls -->
+    <div class="mlq-bar">
+      <div class="ctrl-group">
+        <label>Season</label>
+        <select id="mlq-season">
+          <option value="2026">2026</option>
+          <option value="2025">2025</option>
+          <option value="2024">2024</option>
+          <option value="2023">2023</option>
+          <option value="2022">2022</option>
+          <option value="2021">2021</option>
+          <option value="2019">2019</option>
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <label>Phase</label>
+        <select id="mlq-phase">
+          <option value="regular">Regular</option>
+          <option value="championship">Championship</option>
+          <option value="all">All</option>
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <label>Team</label>
+        <select id="mlq-team">
+          <option value="All">All Teams</option>
+          <option>BOS</option><option>CHI</option><option>CLE</option><option>CLT</option>
+          <option>DET</option><option>HOU</option><option>KC</option><option>MPLS</option>
+          <option>NYC</option><option>SA</option><option>TOR</option><option>WAS</option>
+        </select>
+      </div>
+      <button class="btn-load" id="mlq-load-btn" onclick="loadMLQ()">Load Stats</button>
+      <button class="btn-export" id="mlq-export-btn" onclick="exportMLQCSV()" disabled>Export CSV</button>
+      <span id="mlq-row-count" style="font-size:12px;color:var(--muted);margin-left:auto"></span>
+    </div>
+
+    <!-- Position filter tabs -->
+    <div class="pos-tabs">
+      <button class="pos-tab active" onclick="setPosTabs('all',this)">All</button>
+      <button class="pos-tab" onclick="setPosTabs('chaser',this)">Chasers</button>
+      <button class="pos-tab" onclick="setPosTabs('beater',this)">Beaters</button>
+      <button class="pos-tab" onclick="setPosTabs('keeper',this)">Keepers</button>
+      <button class="pos-tab" onclick="setPosTabs('seeker',this)">Seekers</button>
+    </div>
+
+    <div class="status-bar" id="mlq-status">
+      <span id="mlq-status-text">Select filters and click Load Stats.</span>
+    </div>
+
+    <div id="mlq-table-wrap">
+      <div class="es">No data loaded yet.</div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, onSnapshot }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCSYAz6tnIOxG9MMkOUoDtMSRMFdkpT6KQ",
+  authDomain: "quadball-1596e.firebaseapp.com",
+  projectId: "quadball-1596e",
+  storageBucket: "quadball-1596e.firebasestorage.app",
+  messagingSenderId: "385141631326",
+  appId: "1:385141631326:web:cf0ba334d8af6027de47cf",
+  measurementId: "G-SJ8E8BB1TS"
+};
+
+const app  = initializeApp(firebaseConfig);
+const db   = getFirestore(app);
+const auth = getAuth(app);
+
+const RAW_CENTER = 5, RAW_SCALE = 1;
+const ADMIN_EMAIL = 'matthew.r.fiebig@gmail.com';
+const MLQ_PROXY = `${window.location.origin}/api/mlqStats`; // Firebase Function proxy
+
+function toDisp(r){ return Math.max(0,Math.min(10,5+((r||RAW_CENTER)-RAW_CENTER)/RAW_SCALE)).toFixed(3); }
+function initials(n){ return (n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,3); }
+function teamColor(t){ return (t?.color&&t.color.trim())?t.color.trim():null; }
+function teamNameHTML(t,extra=''){const c=teamColor(t);return c?`<span style="color:${c}${extra}">${t.name}</span>`:t.name;}
+function leagueBadgeHTML(league){
+  if(!league) return '';
+  const styles={'MLQ':'background:rgba(220,220,235,0.12);color:#E8E8F0;border-color:rgba(220,220,235,0.3)','Club':'background:rgba(200,168,75,0.14);color:#C8A84B;border-color:rgba(200,168,75,0.35)','College':'background:rgba(61,191,122,0.12);color:#3DBF7A;border-color:rgba(61,191,122,0.3)'};
+  const s=styles[league]||'background:rgba(123,94,167,0.12);color:#a98fd4;border-color:rgba(123,94,167,0.3)';
+  return`<span style="display:inline-block;${s};border:1px solid;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-left:8px">${league}</span>`;
+}
+function toast(msg,err){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(err?' err':'')+' show';setTimeout(()=>t.className='toast',5000);}
+
+// ── Firebase data ─────────────────────────────────────────────────────────────
+let teams=[], matches=[], currentUser=null, userProfile=null;
+
+const cachedAuth = (() => { try{ const v=sessionStorage.getItem('qb_auth'); return v?JSON.parse(v):null; }catch{ return null; } })();
+if(cachedAuth) updateNavAuth(cachedAuth, cachedAuth.profile);
+
+onAuthStateChanged(auth, async user => {
+  currentUser = user;
+  userProfile = null;
+  if(user){
+    try{
+      const snap = await getDoc(doc(db,'users',user.uid));
+      if(snap.exists()) userProfile = snap.data();
+    }catch(e){}
+    try{ sessionStorage.setItem('qb_auth',JSON.stringify({uid:user.uid,email:user.email,displayName:user.displayName,profile:userProfile})); }catch{}
+  } else {
+    try{ sessionStorage.removeItem('qb_auth'); }catch{}
+  }
+  updateNavAuth(user, userProfile);
+  fillSelects();
+});
+
+onSnapshot(collection(db,'teams'), snap=>{
+  teams = snap.docs.map(d=>({id:d.id,...d.data()}));
+  fillSelects();
+});
+
+function normalizeDate(raw){
+  if(!raw) return '';
+  raw=String(raw).trim().replace(/\s+\d{1,2}:\d{2}(:\d{2})?$/,'').trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const mdy=raw.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if(mdy) return mdy[3]+'-'+mdy[1].padStart(2,'0')+'-'+mdy[2].padStart(2,'0');
+  const mdyS=raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(mdyS) return mdyS[3]+'-'+mdyS[1].padStart(2,'0')+'-'+mdyS[2].padStart(2,'0');
+  return raw;
+}
+
+onSnapshot(collection(db,'matches'), snap=>{
+  matches = snap.docs.map(d=>{ const data=d.data(); if(data.date) data.date=normalizeDate(data.date); return{id:d.id,...data}; });
+  matches.sort((a,b)=>{ if(a.timestamp&&b.timestamp) return a.timestamp-b.timestamp; return (a.date||'')<(b.date||'')?-1:1; });
+  if(window._teamMatchesData){
+    const tid=window._teamMatchesData.teamId;
+    window._teamMatchesData.matches=matches.filter(m=>m.teamA===tid||m.teamB===tid||m.winner===tid||m.loser===tid)
+      .sort((a,b)=>{ const da=a.date||'',db=b.date||''; if(db!==da) return db<da?-1:db>da?1:0; if(a.timestamp&&b.timestamp) return b.timestamp-a.timestamp; return 0; });
+    if(typeof window._renderMhRows==='function') window._renderMhRows();
+  }
+});
+
+// ── Nav ───────────────────────────────────────────────────────────────────────
+function isAdmin(user,profile){ return user&&(user.email===ADMIN_EMAIL||profile?.isAdmin); }
+function updateNavAuth(user,profile){
+  const av=document.getElementById('nav-av'), nm=document.getElementById('nav-profile-name');
+  if(user){ const name=profile?.teamName||user.displayName||user.email.split('@')[0]; if(av)av.textContent=initials(name); if(nm)nm.textContent=name.split(' ')[0]; }
+  else{ if(av)av.textContent='?'; if(nm)nm.textContent='Sign In'; }
+  const adminVisible=isAdmin(user,profile);
+  ['nav-admin-btn','ham-admin-btn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=adminVisible?'':'none';});
+}
+window.toggleHam=function(){document.getElementById('ham-menu').classList.toggle('open');};
+window.closeHam=function(){document.getElementById('ham-menu').classList.remove('open');};
+document.addEventListener('click',function(e){
+  const m=document.getElementById('ham-menu'),b=document.getElementById('ham-btn');
+  if(m&&b&&!m.contains(e.target)&&!b.contains(e.target))m.classList.remove('open');
+});
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+window.switchTab = function(tab, btn) {
+  document.querySelectorAll('.main-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.main-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+tab).classList.add('active');
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// FCL TEAM STATS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function fillSelects(){
+  const sel=document.getElementById('stats-sel');
+  if(!sel) return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— Choose team —</option>';
+  [...teams].sort((a,b)=>a.name.localeCompare(b.name)).filter(t=>!t.archived).forEach(t=>{
+    sel.innerHTML+=`<option value="${t.id}">${t.name}</option>`;
+  });
+  if(cur) sel.value=cur;
+  renderFollowedCards();
+}
+
+function renderFollowedCards(){
+  const section=document.getElementById('followed-teams-section');
+  const grid=document.getElementById('followed-cards-grid');
+  if(!section||!grid) return;
+  const followed=userProfile?.followedTeams||[];
+  if(!followed.length){ section.style.display='none'; return; }
+  const followedTeams=teams.filter(t=>followed.includes(t.id)&&!t.archived);
+  if(!followedTeams.length){ section.style.display='none'; return; }
+  section.style.display='';
+  grid.innerHTML=followedTeams.map(t=>`
+    <div class="followed-card" onclick="quickSelectTeam('${t.id}')">
+      <div class="fc-av">${t.logoUrl?`<img src="${t.logoUrl}" alt="">`:initials(t.name)}</div>
+      <div class="fc-name">${t.name}</div>
+      <div class="fc-league">${t.league||'Independent'}</div>
+    </div>`).join('');
+}
+
+window.quickSelectTeam=function(id){
+  const sel=document.getElementById('stats-sel');
+  if(sel){ sel.value=id; renderTeamStats(); }
+};
+
+window.renderTeamStats=function(){
+  const sel=document.getElementById('stats-sel');
+  const container=document.getElementById('stats-content');
+  if(!sel||!container) return;
+  const id=sel.value;
+  if(!id){ container.innerHTML='<div class="es" style="padding:32px 0">Select a team above.</div>'; return; }
+  const t=teams.find(x=>x.id===id);
+  if(!t){ container.innerHTML=''; return; }
+
+  const r=toDisp(t.rating||RAW_CENTER);
+  const lr=toDisp(t.lifetimeRating||t.rating||RAW_CENTER);
+  const gp=t.seasonGames||0;
+  const w=t.wins||0, l=t.losses||0;
+  const pts=t.totalPoints||0;
+  const ppg=gp>0?Math.round(pts/gp):'—';
+  const lw=t.lifetimeWins??t.wins??0, ll=t.lifetimeLosses??t.losses??0;
+  const lgames=t.lifetimeGames??gp;
+  const lpts=t.lifetimeTotalPoints??t.totalPoints??pts;
+  const lppg=lgames>0?Math.round(lpts/lgames):'—';
+  const flagCatch=t.flagCatchPct!=null?parseFloat(t.flagCatchPct).toFixed(1)+'%':'—';
+  const leagueBadge=leagueBadgeHTML(t.league);
+  const nameColor=teamColor(t);
+  const styledName=nameColor?`<span style="color:${nameColor}">${t.name}</span>`:t.name;
+
+  const teamMatches=matches.filter(m=>m.teamA===id||m.teamB===id||m.winner===id||m.loser===id)
+    .sort((a,b)=>{ const da=a.date||'',db=b.date||''; if(db!==da) return db<da?-1:db>da?1:0; if(a.timestamp&&b.timestamp) return b.timestamp-a.timestamp; return 0; });
+
+  container.innerHTML=`
+    <div class="pp">
+      <div class="ptop">
+        <div class="av">${initials(t.name)}</div>
+        <div>
+          <div class="pname">${styledName}${leagueBadge}</div>
+          <div class="pmeta">Established ${t.founded||new Date().getFullYear()}</div>
+        </div>
+        <div class="prb"><div class="rbn">${r}</div><div class="rbl">Season Rating</div></div>
+      </div>
+      <div class="pstats">
+        <div class="pstat"><div class="psv" style="color:var(--accent)">${w}–${l}</div><div class="psl">W–L (Season)</div></div>
+        <div class="pstat"><div class="psv">${gp}</div><div class="psl">Games (Season)</div></div>
+        <div class="pstat"><div class="psv" style="color:var(--accent)">${ppg}</div><div class="psl">Pts/Game</div></div>
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Lifetime Stats</div>
+    <div class="lifetime-hrow">
+      <div class="sc"><div class="sl">Rating</div><div class="sv gold">${lr}</div></div>
+      <div class="sc"><div class="sl">W–L</div><div class="sv" style="color:var(--accent)">${lw}–${ll}</div></div>
+      <div class="sc"><div class="sl">Games</div><div class="sv">${lgames}</div></div>
+      <div class="sc"><div class="sl">Pts/Game</div><div class="sv" style="color:var(--accent)">${lppg}</div></div>
+    </div>
+    ${t.flagCatchPct!=null?`<div class="sc" style="margin-bottom:20px;display:inline-block;min-width:160px"><div class="sl">🚩 Flag Catch %</div><div class="sv" style="color:var(--accent)">${flagCatch}</div></div>`:''}
+    <div class="mh" id="team-mh">
+      <div class="mhh">
+        <span class="mhh-title">All Matches <span id="mh-count" style="font-size:11px;opacity:.6"></span></span>
+        <div class="mh-controls">
+          <input class="mh-search" id="mh-search" type="text" placeholder="Search opponent…" oninput="window._mhSearchChange(this.value)">
+          <button class="mh-filter active" id="mhf-all" onclick="window._mhSetFilter('all',this)">All</button>
+          <button class="mh-filter" id="mhf-W" onclick="window._mhSetFilter('W',this)">Wins</button>
+          <button class="mh-filter" id="mhf-L" onclick="window._mhSetFilter('L',this)">Losses</button>
+          <select class="mh-sort" id="mh-sort" onchange="window._mhSetSort(this.value)">
+            <option value="date-desc">Date ↓</option>
+            <option value="date-asc">Date ↑</option>
+            <option value="score-desc">Score ↓</option>
+            <option value="score-asc">Score ↑</option>
+          </select>
+        </div>
+      </div>
+      <div id="mh-rows"></div>
+    </div>`;
+
+  window._mhFilter='all'; window._mhSort='date-desc'; window._mhSearch='';
+  window._mhSetFilter=function(f,btn){ window._mhFilter=f; document.querySelectorAll('.mh-filter').forEach(b=>b.classList.remove('active')); if(btn)btn.classList.add('active'); window._renderMhRows(); };
+  window._mhSetSort=function(s){ window._mhSort=s; window._renderMhRows(); };
+  window._mhSearchChange=function(v){ window._mhSearch=v.toLowerCase(); window._renderMhRows(); };
+  window._teamMatchesData={matches:teamMatches,teamId:id,teams};
+
+  window._renderMhRows=function(){
+    const {matches:allM,teamId,teams:allT}=window._teamMatchesData||{};
+    if(!allM) return;
+    const rowsEl=document.getElementById('mh-rows');
+    const countEl=document.getElementById('mh-count');
+    if(!rowsEl) return;
+    let list=[...allM];
+    if(window._mhFilter==='W') list=list.filter(m=>m.winner===teamId);
+    else if(window._mhFilter==='L') list=list.filter(m=>m.loser===teamId);
+    if(window._mhSearch){ list=list.filter(m=>{ const oppId=m.winner===teamId?m.loser:m.winner; const opp=allT.find(x=>x.id===oppId); return (opp?.name||'').toLowerCase().includes(window._mhSearch)||(m.date||'').includes(window._mhSearch); }); }
+    if(window._mhSort==='date-asc') list.sort((a,b)=>{ const da=a.date||'',db=b.date||''; if(da!==db)return da<db?-1:1; if(a.timestamp&&b.timestamp)return a.timestamp-b.timestamp; return 0; });
+    else if(window._mhSort==='date-desc') list.sort((a,b)=>{ const da=a.date||'',db=b.date||''; if(da!==db)return da<db?1:-1; if(a.timestamp&&b.timestamp)return b.timestamp-a.timestamp; return 0; });
+    else if(window._mhSort==='score-desc') list.sort((a,b)=>{ const sa=(a.winner===teamId?a.scoreW:a.scoreL)||0,sb=(b.winner===teamId?b.scoreW:b.scoreL)||0; return sb-sa; });
+    else if(window._mhSort==='score-asc') list.sort((a,b)=>{ const sa=(a.winner===teamId?a.scoreW:a.scoreL)||0,sb=(b.winner===teamId?b.scoreW:b.scoreL)||0; return sa-sb; });
+    if(countEl) countEl.textContent=list.length?`(${list.length})`:'';
+    if(!list.length){ rowsEl.innerHTML=`<div class="es">No matches found.</div>`; return; }
+    rowsEl.innerHTML=list.map(m=>{
+      const isWin=(m.winner===teamId);
+      const oppId=m.winner===teamId?m.loser:m.winner;
+      const opp=allT.find(x=>x.id===oppId);
+      const myScore=m.winner===teamId?m.scoreW:m.scoreL;
+      const theirScore=m.winner===teamId?m.scoreL:m.scoreW;
+      const delta=m.ratingChanges?.[teamId];
+      const ds=delta!=null?(delta>0?'+':'')+parseFloat(delta).toFixed(3):null;
+      const ldelta=m.lifetimeRatingChanges?.[teamId];
+      const lds=ldelta!=null?(ldelta>0?'+':'')+parseFloat(ldelta).toFixed(3):null;
+      const isHome=m.homeTeam===teamId, isAway=m.awayTeam===teamId;
+      const haTag=isHome?`<span style="font-size:10px;color:var(--success);font-weight:700">🏠</span>`:isAway?`<span style="font-size:10px;color:var(--muted);font-weight:700">✈</span>`:'';
+      const ffTag=m.forfeit?`<span style="font-size:10px;font-weight:700;color:var(--danger)">FF</span>`:'';
+      const oppColor=teamColor(opp);
+      const oppNameStyled=oppColor?`<span style="color:${oppColor}">${opp?.name||'Opponent'}</span>`:(opp?.name||'Opponent');
+      let ratingCol='';
+      if(ds||lds){ ratingCol=`<div class="mrating-changes">${ds?`<div class="mrc-row"><span class="mrc-lbl">Season</span><span class="md ${parseFloat(delta)>0?'pos':'neg'}">${ds}</span></div>`:''}${lds?`<div class="mrc-row"><span class="mrc-lbl">Lifetime</span><span class="md ${parseFloat(ldelta)>0?'pos':'neg'}">${lds}</span></div>`:''}</div>`; }
+      if(m.forfeit){ return`<div class="mr"><div class="mres ${isWin?'W':'L'}">${isWin?'W':'L'}</div><div class="mscore" style="color:var(--danger)">FF</div><div class="mopp">vs ${oppNameStyled}</div>${ffTag?`<div style="align-self:center">${ffTag}</div>`:''}<div class="mdate">${m.date||''}</div></div>`; }
+      return`<div class="mr"><div class="mres ${isWin?'W':'L'}">${isWin?'W':'L'}</div><div class="mscore">${myScore??'—'} – ${theirScore??'—'}</div><div class="mopp">vs ${oppNameStyled}${haTag?` ${haTag}`:''}</div>${ffTag?`<div style="align-self:center">${ffTag}</div>`:''} ${ratingCol}<div class="mdate">${m.date||''}</div></div>`;
+    }).join('');
+  };
+  window._renderMhRows();
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MLQ PLAYER STATS
+// ══════════════════════════════════════════════════════════════════════════════
+
+const MLQ_BASE = 'https://stats-site-hzc5gx2alq-uc.a.run.app/api';
+const POSITIONS = ['chaser','beater','keeper','seeker'];
+const PHASES    = ['regular','championship'];
+
+let mlqAllRows = [];
+let mlqPosFilter = 'all';
+let mlqSortCol = 'Q-Score';
+let mlqSortDir = -1; // -1 = desc
+
+function qScore(row){
+  return (parseFloat(row['Goals'])||0)+(parseFloat(row['Assists'])||0)
+        +(parseFloat(row['Stops'])||0)-(parseFloat(row['Turnovers'])||0);
+}
+
+async function mlqFetch(season, phase, pos){
+  const url = `${MLQ_BASE}/${season}/players?phase=${phase}&position=${pos}&per_game=false&team=All&min_drives=0`;
+  const res = await fetch(url);
+  if(res.status===400) return [];
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  return (data.rows||[]).map(r=>({
+    position: pos, phase, season,
+    ...r,
+    ...(pos==='chaser'?{'Q-Score': qScore(r)}:{})
+  }));
+}
+
+window.loadMLQ = async function(){
+  const season  = document.getElementById('mlq-season').value;
+  const phase   = document.getElementById('mlq-phase').value;
+  const teamFil = document.getElementById('mlq-team').value;
+
+  setMLQLoading(true);
+  mlqAllRows = [];
+  document.getElementById('mlq-export-btn').disabled = true;
+
+  try{
+    const phases    = phase==='all' ? PHASES    : [phase];
+    for(const ph of phases){
+      for(const pos of POSITIONS){
+        setMLQStatus(`Fetching ${season} / ${ph} / ${pos}…`);
+        const rows = await mlqFetch(season, ph, pos);
+        mlqAllRows.push(...rows);
+      }
+    }
+    // Team filter
+    if(teamFil!=='All') mlqAllRows = mlqAllRows.filter(r=>r.Team===teamFil);
+
+    setMLQStatus(`${mlqAllRows.length} players loaded.`);
+    mlqSortCol = mlqPosFilter==='chaser' ? 'Q-Score' : 'Games Rostered';
+    renderMLQTable();
+    document.getElementById('mlq-export-btn').disabled = mlqAllRows.length===0;
+  }catch(err){
+    setMLQStatus(`Error: ${err.message}`);
+  }finally{
+    setMLQLoading(false);
+  }
+};
+
+window.setPosTabs = function(pos, btn){
+  mlqPosFilter = pos;
+  document.querySelectorAll('.pos-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  // Default sort for each position
+  if(pos==='chaser') mlqSortCol='Q-Score';
+  else mlqSortCol='Games Rostered';
+  mlqSortDir=-1;
+  renderMLQTable();
+};
+
+function getMLQCols(rows){
+  if(!rows.length) return [];
+  const priority = ['position','Player','Team','season','phase','Games Rostered',
+    'Goals','Assists','Stops','Turnovers','Q-Score','A:TO',
+    'Drives Played','Average Dodgeballs','Plus/Minus','Plus','Minus','Runner Catches'];
+  const all = [...new Set(rows.flatMap(r=>Object.keys(r)))];
+  const ordered = priority.filter(c=>all.includes(c));
+  const rest = all.filter(c=>!ordered.includes(c));
+  return [...ordered,...rest];
+}
+
+function renderMLQTable(){
+  const wrap = document.getElementById('mlq-table-wrap');
+  const countEl = document.getElementById('mlq-row-count');
+
+  // Filter by position tab
+  let rows = mlqPosFilter==='all'
+    ? [...mlqAllRows]
+    : mlqAllRows.filter(r=>r.position===mlqPosFilter);
+
+  document.getElementById('mlq-row-count').textContent = rows.length ? `${rows.length} players` : '';
+
+  if(!rows.length){
+    wrap.innerHTML='<div class="es">No players for this selection.</div>';
+    return;
+  }
+
+  // Sort
+  rows.sort((a,b)=>{
+    const av=a[mlqSortCol], bv=b[mlqSortCol];
+    const an=parseFloat(av), bn=parseFloat(bv);
+    if(!isNaN(an)&&!isNaN(bn)) return (an-bn)*mlqSortDir;
+    return String(av??'').localeCompare(String(bv??''))*mlqSortDir;
+  });
+
+  const cols = getMLQCols(rows);
+
+  const thead = cols.map(c=>{
+    let cls='';
+    if(c===mlqSortCol) cls=mlqSortDir===1?' sort-asc':' sort-desc';
+    if(c==='Q-Score') cls+=' col-q';
+    return `<th class="${cls.trim()}" onclick="mlqSort('${c}')">${c}</th>`;
+  }).join('');
+
+  const tbody = rows.map(row=>{
+    const cells = cols.map(c=>{
+      const v = row[c];
+      if(c==='position') return `<td><span class="badge badge-${v}">${v}</span></td>`;
+      if(c==='Q-Score')  return `<td class="col-q">${v!==undefined?v:'—'}</td>`;
+      return `<td>${v??'—'}</td>`;
+    }).join('');
+    return `<tr>${cells}</tr>`;
+  }).join('');
+
+  wrap.innerHTML=`<div class="tc" style="overflow-x:auto"><table><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table></div>`;
+}
+
+window.mlqSort = function(col){
+  if(mlqSortCol===col) mlqSortDir*=-1;
+  else{ mlqSortCol=col; mlqSortDir=-1; }
+  renderMLQTable();
+};
+
+window.exportMLQCSV = function(){
+  if(!mlqAllRows.length) return;
+  const rows = mlqPosFilter==='all' ? mlqAllRows : mlqAllRows.filter(r=>r.position===mlqPosFilter);
+  const cols = getMLQCols(rows);
+  const lines = [cols.join(',')];
+  rows.forEach(row=>{ lines.push(cols.map(c=>{ const v=row[c]??''; return String(v).includes(',')?`"${v}"`:v; }).join(',')); });
+  const blob = new Blob([lines.join('\n')],{type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `mlq_${document.getElementById('mlq-season').value}_${mlqPosFilter}.csv`;
+  a.click();
+};
+
+function setMLQLoading(on){
+  const btn=document.getElementById('mlq-load-btn');
+  const status=document.getElementById('mlq-status');
+  btn.disabled=on;
+  // show/hide spinner
+  let spinner=document.getElementById('mlq-spinner');
+  if(on&&!spinner){
+    spinner=document.createElement('div');
+    spinner.id='mlq-spinner';
+    spinner.className='spinner';
+    status.prepend(spinner);
+  } else if(!on&&spinner){
+    spinner.remove();
+  }
+}
+function setMLQStatus(msg){
+  document.getElementById('mlq-status-text').textContent=msg;
+}
+
+</script>
+<div id="toast" class="toast"></div>
+<footer style="text-align:center;padding:20px 16px 28px;font-size:11px;color:var(--muted);letter-spacing:.5px">Quadball League &nbsp;·&nbsp; Ver 1.2</footer>
+</body>
+</html>
